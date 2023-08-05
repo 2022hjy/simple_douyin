@@ -1,0 +1,11 @@
+mysql:  
+  host: 192.168.1.12
+  port: 3306
+  database: douyin
+  username: user
+  password: 123
+redis:
+  address: 192.168.1.12
+  network: tcp
+  port: 6379
+  auth: 123
