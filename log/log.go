@@ -1,3 +1,4 @@
+// log.go
 package log
 
 import (
@@ -7,25 +8,27 @@ import (
 	"time"
 )
 
-var log = logrus.New()
+// Log 是 logrus 的实例
+var Log = logrus.New()
 
-func init() {
-	log.SetFormatter(&logrus.JSONFormatter{})
-	log.SetOutput(os.Stdout)
-	log.SetLevel(logrus.DebugLevel)
+// LogrusInit 初始化logrus
+func LogrusInit() {
+	Log.SetFormatter(&logrus.JSONFormatter{})
+	Log.SetOutput(os.Stdout)
+	Log.SetLevel(logrus.DebugLevel)
 }
 
+// Logging 日志中间件
 func Logging() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		startTime := time.Now()
 		c.Next()
 		passTime := time.Since(startTime)
-		log.WithFields(logrus.Fields{
+		Log.WithFields(logrus.Fields{
 			"method":     c.Request.Method,
 			"requestUri": c.Request.RequestURI,
 			"status":     c.Writer.Status(),
 			"passTime":   passTime,
-			}).Info("request info")
-		}
+		}).Info("request info")
 	}
 }

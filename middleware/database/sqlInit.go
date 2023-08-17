@@ -20,7 +20,7 @@ func init() {
 	})
 }
 
-func initDb() {
+func InitDb() {
 	// 配置信息
 	host := "localhost"
 	port := "3306"

@@ -3,33 +3,52 @@ package main
 import (
 	"github.com/RaymondCode/simple-demo/controller"
 	"github.com/gin-gonic/gin"
+	"simple_douyin/middleware/corsUtils"
 )
 
-func initRouter(r *gin.Engine) {
+func InitRouter(apiRouter *gin.RouterGroup) *gin.RouterGroup {
 	// public directory is used to serve static resources
+	r := gin.Default()
 	r.Static("/static", "./public")
 
-	apiRouter := r.Group("/douyin")
+	// 用户相关路由
+	rUser := apiRouter.Group("/user")
+	{
+		rUser.POST("/register/", controller.Register)
+		rUser.POST("/login/", controller.Login)
+		rUser.GET("/user/", controller.UserInfo)
+	}
 
-	// basic apis
-	apiRouter.GET("/feed/", controller.Feed)
-	apiRouter.GET("/user/", controller.UserInfo)
-	apiRouter.POST("/user/register/", controller.Register)
-	apiRouter.POST("/user/login/", controller.Login)
-	apiRouter.POST("/publish/action/", controller.Publish)
-	apiRouter.GET("/publish/list/", controller.PublishList)
+	// 互动相关路由
+	rInteraction := apiRouter.Group("/relation")
+	{
+		rInteraction.POST("/action/", controller.RelationAction)
+		rInteraction.GET("/follow/list/", controller.FollowList)
+		rInteraction.GET("/follower/list/", controller.FollowerList)
+		rInteraction.GET("/friend/list/", controller.FriendList)
+	}
 
-	// extra apis - I
-	apiRouter.POST("/favorite/action/", controller.FavoriteAction)
-	apiRouter.GET("/favorite/list/", controller.FavoriteList)
-	apiRouter.POST("/comment/action/", controller.CommentAction)
-	apiRouter.GET("/comment/list/", controller.CommentList)
+	// 视频相关路由
+	rVideo := apiRouter.Group("/publish")
+	{
+		rVideo.POST("/action/", controller.Publish)
+	}
 
-	// extra apis - II
-	apiRouter.POST("/relation/action/", controller.RelationAction)
-	apiRouter.GET("/relation/follow/list/", controller.FollowList)
-	apiRouter.GET("/relation/follower/list/", controller.FollowerList)
-	apiRouter.GET("/relation/friend/list/", controller.FriendList)
-	apiRouter.GET("/message/chat/", controller.MessageChat)
-	apiRouter.POST("/message/action/", controller.MessageAction)
+	// 评论相关路由
+	rComment := apiRouter.Group("/comment")
+	{
+		rComment.POST("/action/", controller.CommentAction)
+		rComment.GET("/list/", controller.CommentList)
+	}
+
+	// 私信相关路由
+	rMessage := apiRouter.Group("/message")
+	{
+		rMessage.POST("/action/", controller.MessageAction)
+		rMessage.GET("/chat/", controller.MessageChat)
+	}
+
+	// 允许跨域
+	apiRouter.Use(corsUtils.AllowAllCORS())
+	return apiRouter
 }
