@@ -14,23 +14,23 @@ var (
 	once sync.Once
 )
 
-func init() {
+func Init() {
 	once.Do(func() {
 		initDb()
 	})
 }
 
-func InitDb() {
+func initDb() {
 	// 配置信息
 	host := "localhost"
 	port := "3306"
 	username := "root"
-	password := "8888888"
+	password := "88888888"
 	dbname := "douyin"
 
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8&parseTime=True&loc=Local", username, password, host, port, dbname)
 	db, ConnectErr := gorm.Open(mysql.Open(dsn), &gorm.Config{
-		Logger: logger.Default.LogMode(logger.Info), // 这里可以根据环境变量或配置文件设置不同的日志级别
+		Logger: logger.Default.LogMode(logger.Info),
 	})
 	if ConnectErr != nil {
 		log.Println("数据库连接失败", ConnectErr)

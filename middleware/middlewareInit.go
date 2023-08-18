@@ -5,6 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"simple_douyin/log"
 	"simple_douyin/middleware/ratelimit"
+	"simple_douyin/middleware/redis"
 )
 
 func InitMiddleware(apiRouter *gin.RouterGroup) { // 请将 "YOUR_ROUTER_TYPE" 替换为您的 apiRouter 类型
@@ -16,7 +17,7 @@ func InitMiddleware(apiRouter *gin.RouterGroup) { // 请将 "YOUR_ROUTER_TYPE" �
 	apiRouter.Use(xssMiddleware.RemoveXss())
 
 	//初始化 Redis
-	redis.InitPool(0)
+	redis.InitRedis()
 
 	// 初始化限流器
 	rateControlHandler, err := ratelimit.RateControl()
