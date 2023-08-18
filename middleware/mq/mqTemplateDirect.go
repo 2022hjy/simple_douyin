@@ -113,7 +113,6 @@ func InitMq() {
 	// 处理FollowMQ队列中的消息
 	go handleMessages(FollowMQ.Name, ch, handleFollowMessage)
 
-	// Wait for a signal to terminate the program
 	sig := make(chan os.Signal, 1)
 	signal.Notify(sig, os.Interrupt, syscall.SIGTERM)
 	<-sig
