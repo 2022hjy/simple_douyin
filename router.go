@@ -12,6 +12,8 @@ func InitRouter(apiRouter *gin.RouterGroup) *gin.RouterGroup {
 	r := gin.Default()
 	r.Static("/static", "./public")
 
+	r.GET("/feed/", jwt.AuthWithoutLogin(), controller.Feed)
+
 	// 用户相关路由
 	rUser := apiRouter.Group("/user")
 	{
@@ -29,10 +31,18 @@ func InitRouter(apiRouter *gin.RouterGroup) *gin.RouterGroup {
 		rInteraction.GET("/friend/list/", controller.FriendList)
 	}
 
+	// 点赞相关路由
+	rFavorite := apiRouter.Group("/favorite")
+	{
+		rFavorite.POST("/favorite/action/", jwt.Auth(), controller.FavoriteAction)
+		rFavorite.GET("/favorite/list/", jwt.AuthWithoutLogin(), controller.FavoriteList)
+	}
+
 	// 视频相关路由
 	rVideo := apiRouter.Group("/publish")
 	{
 		rVideo.POST("/action/", controller.Publish)
+		rVideo.GET("/list/", jwt.AuthWithoutLogin(), controller.PublishList)
 	}
 
 	// 评论相关路由

@@ -1,5 +1,7 @@
 package config
 
+import "time"
+
 // RedisAddr redis地址
 const (
 	RedisAddr  = "localhost:6379"
