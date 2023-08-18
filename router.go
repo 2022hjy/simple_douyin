@@ -4,6 +4,7 @@ import (
 	"github.com/RaymondCode/simple-demo/controller"
 	"github.com/gin-gonic/gin"
 	"simple_douyin/middleware/corsUtils"
+	"simple_douyin/middleware/jwt"
 )
 
 func InitRouter(apiRouter *gin.RouterGroup) *gin.RouterGroup {
@@ -16,7 +17,7 @@ func InitRouter(apiRouter *gin.RouterGroup) *gin.RouterGroup {
 	{
 		rUser.POST("/register/", controller.Register)
 		rUser.POST("/login/", controller.Login)
-		rUser.GET("/user/", controller.UserInfo)
+		rUser.GET("/", jwt.Auth(), controller.UserInfo)
 	}
 
 	// 互动相关路由
