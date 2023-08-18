@@ -16,7 +16,7 @@ func main() {
 
 	middleware.InitMiddleware(apiRouter)
 
-	database.InitDb()
+	database.Init()
 
 	InitRouter(apiRouter)
 
