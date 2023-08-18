@@ -33,31 +33,44 @@ CREATE TABLE `user_like_video`
     CONSTRAINT `fk_user_favorite_video_video` FOREIGN KEY (`video_id`) REFERENCES `video` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='用户喜欢的视频表';
 
--- Table structure for user_info
-DROP TABLE IF EXISTS `user_info`;
-CREATE TABLE `user_info`
-(
-    `id`             bigint unsigned NOT NULL AUTO_INCREMENT  unique  COMMENT '用户的唯一ID',
-    `username`       varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL unique DEFAULT '' COMMENT '用户名',
-    `follow_count`   int                                              DEFAULT 0 COMMENT '该用户关注的人数',
-    `follower_count` int                                              DEFAULT 0 COMMENT '关注该用户的人数',
-    `is_follow`      tinyint unsigned DEFAULT 0 COMMENT '标记是否被关注',
-    PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='用户信息表';
+---- Table structure for user_info
+--DROP TABLE IF EXISTS `user_info`;
+--CREATE TABLE `user_info`
+--(
+--    `id`             bigint unsigned NOT NULL AUTO_INCREMENT  unique  COMMENT '用户的唯一ID',
+--    `username`       varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL unique DEFAULT '' COMMENT '用户名',
+--    `follow_count`   int                                              DEFAULT 0 COMMENT '该用户关注的人数',
+--    `follower_count` int                                              DEFAULT 0 COMMENT '关注该用户的人数',
+--    `is_follow`      tinyint unsigned DEFAULT 0 COMMENT '标记是否被关注',
+--    PRIMARY KEY (`id`)
+--) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='用户信息表';
+--
+---- Table structure for user_login
+--DROP TABLE IF EXISTS `user`;
+--CREATE TABLE `user`
+--(
+--    `id`           bigint unsigned NOT NULL AUTO_INCREMENT unique  COMMENT '登录记录的唯一ID',
+--    `user_info_id` bigint unsigned DEFAULT 0 COMMENT '相关用户的引用ID',
+--    `username`     varchar(191) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '登录用户名',
+--    `password`     varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '登录密码',
+--    PRIMARY KEY (`id`),
+--    UNIQUE INDEX `idx_username` (`username`),
+--    KEY            `fk_user_info_login` (`user_info_id`) USING BTREE,
+--    CONSTRAINT `fk_user_info_login` FOREIGN KEY (`user_info_id`) REFERENCES `user_info` (`id`)
+--) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='用户登录信息表';
 
--- Table structure for user_login
 DROP TABLE IF EXISTS `user`;
-CREATE TABLE `user`
-(
-    `id`           bigint unsigned NOT NULL AUTO_INCREMENT unique  COMMENT '登录记录的唯一ID',
-    `user_info_id` bigint unsigned DEFAULT 0 COMMENT '相关用户的引用ID',
-    `username`     varchar(191) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '登录用户名',
-    `password`     varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '登录密码',
-    PRIMARY KEY (`id`),
-    UNIQUE INDEX `idx_username` (`username`),
-    KEY            `fk_user_info_login` (`user_info_id`) USING BTREE,
-    CONSTRAINT `fk_user_info_login` FOREIGN KEY (`user_info_id`) REFERENCES `user_info` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='用户登录信息表';
+CREATE TABLE `user`  (
+  `user_id` bigint UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '登录记录的唯一ID',
+  `username` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT '' COMMENT '登录用户名',
+  `password` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT '' COMMENT '加密后的登录密码',
+  `avatar` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT '' COMMENT '用户头像',
+  `background_image` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT '' COMMENT '用户个人页顶部大图',
+  `signature` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT '' COMMENT '个人简介',
+  PRIMARY KEY (`user_id`) USING BTREE,
+  UNIQUE INDEX `idx_username`(`username` ASC) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '用户信息表' ROW_FORMAT = DYNAMIC;
+
 
 -- Table structure for relation
 DROP TABLE IF EXISTS `relation`;
