@@ -2,6 +2,8 @@ package config
 
 import "time"
 
+const GO_STARTER_TIME = "2006-01-02 15:04:05"
+
 // RedisAddr redis地址
 const (
 	RedisAddr  = "localhost:6379"
