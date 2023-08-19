@@ -1,8 +1,9 @@
 package main
 
 import (
-	"github.com/RaymondCode/simple-demo/controller"
+	//"github.com/RaymondCode/simple-demo/controller"
 	"github.com/gin-gonic/gin"
+	"simple_douyin/controller"
 	"simple_douyin/middleware/corsUtils"
 	"simple_douyin/middleware/jwt"
 )
