@@ -2,11 +2,12 @@ package database
 
 import (
 	"fmt"
+	"log"
+	"sync"
+
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
-	"log"
-	"sync"
 )
 
 var (
