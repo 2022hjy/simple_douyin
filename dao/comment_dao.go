@@ -8,19 +8,19 @@ import (
 	"time"
 )
 
-type Comment struct {
-	Id        int64     //评论id
-	UserId    int64     //评论用户id
-	VideoId   int64     //视频id
-	Content   string    //评论内容
-	CreatedAt time.Time //评论发布的日期mm-dd
+type CommentDao struct {
+	Id        int64  //评论id
+	UserId    int64  //评论用户id
+	VideoId   int64  //视频id
+	Content   string //评论内容
+	CreatedAt time.Time
 	UpdatedAt time.Time
 }
 
 // 删除的操作逻辑：物理删除
 
 // TableName 修改表名映射
-func (Comment) TableName() string {
+func (CommentDao) TableName() string {
 	return "comment"
 }
 
@@ -33,19 +33,21 @@ func handleDBError(result *gorm.DB, action string) error {
 	return nil
 }
 
-func AddComment(comment Comment) (Comment, error) {
-	result := Db.Model(Comment{}).Create(&comment)
+func AddComment(comment CommentDao) (CommentDao, error) {
+	result := Db.Model(CommentDao{}).Create(&comment)
 	return comment, handleDBError(result, "Insert comment")
 }
 
 func DeleteComment(commentId int64) error {
-	result := Db.Model(Comment{}).Where("id = ?", commentId).Delete(&Comment{})
-	return handleDBError(result, "Delete comment")
+	return Db.Transaction(func(tx *gorm.DB) error {
+		result := tx.Model(CommentDao{}).Where("id = ?", commentId).Delete(&CommentDao{})
+		return handleDBError(result, "Delete comment")
+	})
 }
 
 // deprecated function
 //func GetCommentId(userId int64, videoId int64, content string) (int, error) {
-//	var comment Comment
+//	var comment CommentDao
 //	result := Db.Where("user_id = ? and video_id = ? and content = ?", userId, videoId, content).
 //		First(&comment)
 //	if result.Error != nil {
@@ -54,16 +56,26 @@ func DeleteComment(commentId int64) error {
 //	return int(comment.Id), nil
 //}
 
-func GetCommentList(videoId int64) ([]Comment, error) {
-	var commentList []Comment
-	result := Db.Model(Comment{}).Where("video_id = ?", videoId).
+func GetCommentList(videoId int64) ([]CommentDao, error) {
+	var commentList []CommentDao
+	result := Db.Model(CommentDao{}).Where("video_id = ?", videoId).
 		Order("created_at desc").Find(&commentList)
 	return commentList, handleDBError(result, "Get comment list")
 }
 
 func GetCommentCnt(videoId int64) (int64, error) {
 	var count int64
-	result := Db.Model(Comment{}).Where("video_id = ?", videoId).
+	result := Db.Model(CommentDao{}).Where("video_id = ?", videoId).
 		Count(&count)
 	return count, handleDBError(result, "Get comment count")
+}
+
+// TODO: 需要将user的信息也返回给前端
+func GetUserFromCommentId(commentId int64) (int64, error) {
+	var comment CommentDao
+	result := Db.Model(CommentDao{}).Where("id = ?", commentId).First(&comment)
+	if result.Error != nil {
+		return 0, result.Error
+	}
+	return comment.UserId, nil
 }

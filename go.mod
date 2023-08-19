@@ -5,6 +5,7 @@ go 1.20
 
 require (
 	github.com/RaymondCode/simple-demo v0.0.0-20230221080337-89b8c9434e04
+	github.com/aliyun/aliyun-oss-go-sdk v2.2.8+incompatible
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/dvwright/xss-mw v0.0.0-20191029162136-7a0dab86d8f6
 	github.com/gavv/httpexpect/v2 v2.15.0
@@ -35,12 +36,15 @@ require (
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
 	github.com/go-playground/validator/v10 v10.14.0 // indirect
+	github.com/go-redsync/redsync/v4 v4.8.1 // indirect
 	github.com/go-sql-driver/mysql v1.7.0 // indirect
 	github.com/gobwas/glob v0.2.3 // indirect
 	github.com/goccy/go-json v0.10.2 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/gorilla/css v1.0.0 // indirect
 	github.com/gorilla/websocket v1.4.2 // indirect
+	github.com/hashicorp/errwrap v1.1.0 // indirect
+	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/hpcloud/tail v1.0.0 // indirect
 	github.com/imkira/go-interpol v1.1.0 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
