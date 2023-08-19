@@ -5,6 +5,7 @@ import (
 	"log"
 	"simple_douyin/config"
 	"simple_douyin/dao"
+	"sync"
 	"time"
 )
 
@@ -12,7 +13,17 @@ type MessageServiceImpl struct {
 }
 
 // 单例模式简化代码
-var messageServiceImpl = &MessageServiceImpl{}
+var (
+	messageServiceImpl *MessageServiceImpl
+	messageServiceOnce sync.Once
+)
+
+func GetMessageServiceInstance() *MessageServiceImpl {
+	messageServiceOnce.Do(func() {
+		messageServiceImpl = &MessageServiceImpl{}
+	})
+	return messageServiceImpl
+}
 
 // SendMessage 处理err的，有用到dao.SendMessage的方法
 func (messageService *MessageServiceImpl) SendMessage(id int64, fromUserId int64, toUserId int64, content string, actionType int64) error {
