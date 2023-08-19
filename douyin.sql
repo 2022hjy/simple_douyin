@@ -11,7 +11,6 @@ CREATE TABLE `comment`
     `user_info_id` bigint unsigned DEFAULT 0 COMMENT '发表评论的用户的引用ID',
     `video_id`     bigint unsigned DEFAULT 0 COMMENT '被评论的视频的引用ID',
     `content`      varchar(2048) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '评论内容',
-    `action_type`  tinyint NOT NULL DEFAULT 0 COMMENT '评论的类型，1：添加评论，2：删除评论',
     `created_at`   datetime(3) DEFAULT NULL COMMENT '评论创建时间',
     PRIMARY KEY (`id`),
     KEY            `fk_videos_comments` (`video_id`) USING BTREE,

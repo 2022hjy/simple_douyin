@@ -126,31 +126,77 @@ addErr := client.SAdd(Ctx, key, value, exp).Err()
 	}
 */
 
-// GetKeyAndUpdateExpiration 获取 Redis 中的值，并更新（膨胀）过期时间
-func GetKeyAndUpdateExpiration(client *redis.Client, key string) (string, error) {
-	val, err := client.Get(Ctx, key).Result()
+// Deprecate： GetKeyAndUpdateExpiration 获取 Redis 中的值，并更新（膨胀）过期时间
+//func GetKeyAndUpdateExpiration(client *redis.Client, key string) (interface{}, error) {
+//	val, err := client.Get(Ctx, key).Result()
+//	if err != nil {
+//		if err == redis.Nil {
+//			// 缓存穿透，将空数据缓存一段时间，防止缓存穿透
+//			SetValueWithRandomExp(client, key, "")
+//			//SetValueWithRandomExp(client, key, "nil")
+//			return "", nil
+//		}
+//		return "", err
+//	}
+//
+//	MRLock.Lock()
+//	keyAccessMap[key]++
+//	count := keyAccessMap[key]
+//	MRLock.Unlock()
+//
+//	if count >= config.THREASHOLD {
+//		client.Persist(Ctx, key) // 删除过期时间，使键永不过期
+//	} else {
+//		// 增加过期时间
+//		client.Expire(Ctx, key, 2*time.Minute)
+//	}
+//	return val, nil
+//}
+
+// GetKeysAndUpdateExpiration 获取与给定模式匹配的所有Redis中的值，并更新（膨胀）它们的过期时间，支持返回一对一，一对多的键值对
+// 该函数返回一个interface，因此需要在使用的时候使用类型断言
+func GetKeysAndUpdateExpiration(client *redis.Client, pattern string) (interface{}, error) {
+	keys, err := client.Keys(Ctx, pattern).Result()
 	if err != nil {
-		if err == redis.Nil {
-			// 缓存穿透，将空数据缓存一段时间，防止缓存穿透
-			SetValueWithRandomExp(client, key, "")
-			//SetValueWithRandomExp(client, key, "nil")
-			return "", nil
-		}
-		return "", err
+		return nil, err
 	}
 
+	// 没有匹配的键
+	if len(keys) == 0 {
+		return nil, errors.New("no keys match the pattern")
+	}
+
+	values, err := client.MGet(Ctx, keys...).Result()
+	if err != nil {
+		return nil, err
+	}
+
+	results := make(map[string]string)
 	MRLock.Lock()
-	keyAccessMap[key]++
-	count := keyAccessMap[key]
+	for i, key := range keys {
+		val, ok := values[i].(string)
+		if !ok {
+			MRLock.Unlock()
+			return nil, errors.New("value is not of type string")
+		}
+		results[key] = val
+		keyAccessMap[key]++
+		count := keyAccessMap[key]
+		if count >= config.THREASHOLD {
+			client.Persist(Ctx, key) // 删除过期时间，使键永不过期
+		} else {
+			// 增加过期时间
+			client.Expire(Ctx, key, 2*time.Minute)
+		}
+	}
 	MRLock.Unlock()
 
-	if count >= config.THREASHOLD {
-		client.Persist(Ctx, key) // 删除过期时间，使键永不过期
-	} else {
-		// 增加过期时间
-		client.Expire(Ctx, key, 2*time.Minute)
+	if len(results) == 1 {
+		for _, value := range results {
+			return value, nil
+		}
 	}
-	return val, nil
+	return results, nil
 }
 
 // DeleteKey 删除 Redis 中的键值对，线程安全
