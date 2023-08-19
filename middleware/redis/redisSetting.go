@@ -264,10 +264,17 @@ func testRedis() {
 	// 通过 SetValueWithRandomExp 设置 Redis 键值对，过期时间随机
 	SetValueWithRandomExp(Clients.Test, key, "my-value")
 
-	// 通过 GetKeyAndUpdateExpiration 获取 Redis 中的值，并更新（膨胀）过期时间
-	value, err = GetKeyAndUpdateExpiration(Clients.Test, key)
+	// 通过 GetKeysAndUpdateExpiration 获取 Redis 中的值，并更新（膨胀）过期时间
+	valueInterface, err := GetKeysAndUpdateExpiration(Clients.Test, key)
 	if err != nil {
 		log.Printf("Error getting value: %v", err)
+	} else {
+		log.Printf("Value is: %s", value)
+	}
+
+	value, ok := valueInterface.(string)
+	if !ok {
+		log.Printf("Value is not of type string")
 	} else {
 		log.Printf("Value is: %s", value)
 	}

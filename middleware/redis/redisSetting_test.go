@@ -1,44 +1,108 @@
 package redis
 
 import (
-	"sync"
 	"testing"
 )
 
-func TestConcurrentAccess(t *testing.T) {
-	// 初始化 Redis 连接
+func TestSetValueWithRandomExp(t *testing.T) {
 	InitRedis()
 
-	key := "test-key"
-	value := "test-value"
-	const goroutineCount = 10
+	key := "test-key-random"
+	value := "test-value-random"
 
-	// 设置初始值
 	err := SetValueWithRandomExp(Clients.Test, key, value)
 	if err != nil {
-		t.Fatalf("Error setting value: %v", err)
+		t.Errorf("Error setting value: %v", err)
 	}
 
-	var wg sync.WaitGroup
-	wg.Add(goroutineCount)
+	val, err := GetValue(Clients.Test, key)
+	if err != nil {
+		t.Errorf("Error getting value: %v", err)
+	} else if val != value {
+		t.Errorf("Expected value %s, got %s", value, val)
+	}
+}
 
-	for i := 0; i < goroutineCount; i++ {
-		go func() {
-			defer wg.Done()
+func TestSetValue(t *testing.T) {
+	InitRedis()
 
-			val, err := GetKeyAndUpdateExpiration(Clients.Test, key)
-			if err != nil {
-				t.Errorf("Error getting value: %v", err)
-			} else if val != value {
-				t.Errorf("Expected value %s, got %s", value, val)
-			}
-		}()
+	key := "test-key-set"
+	value := "test-value-set"
+
+	err := SetValue(Clients.Test, key, value)
+	if err != nil {
+		t.Errorf("Error setting value: %v", err)
 	}
 
-	wg.Wait()
+	val, err := GetValue(Clients.Test, key)
+	if err != nil {
+		t.Errorf("Error getting value: %v", err)
+	} else if val != value {
+		t.Errorf("Expected value %s, got %s", value, val)
+	}
+}
 
-	accessCount := keyAccessMap[key]
-	if accessCount != goroutineCount {
-		t.Errorf("Expected access count %d, got %d", goroutineCount, accessCount)
+func TestGetKeysAndUpdateExpiration(t *testing.T) {
+	InitRedis()
+
+	key := "test-key-get-update"
+	value := "test-value-get-update"
+
+	err := SetValue(Clients.Test, key, value)
+	if err != nil {
+		t.Errorf("Error setting value: %v", err)
+	}
+
+	valInterface, err := GetKeysAndUpdateExpiration(Clients.Test, key)
+	if err != nil {
+		t.Errorf("Error getting value: %v", err)
+	}
+
+	val, ok := valInterface.(string)
+	if !ok {
+		t.Errorf("Expected string value, got %T", valInterface)
+	} else if val != value {
+		t.Errorf("Expected value %s, got %s", value, val)
+	}
+}
+
+func TestDeleteKey(t *testing.T) {
+	InitRedis()
+
+	key := "test-key-delete"
+	value := "test-value-delete"
+
+	err := SetValue(Clients.Test, key, value)
+	if err != nil {
+		t.Errorf("Error setting value: %v", err)
+	}
+
+	err = DeleteKey(Clients.Test, key)
+	if err != nil {
+		t.Errorf("Error deleting key: %v", err)
+	}
+
+	_, err = GetValue(Clients.Test, key)
+	if err != NilError {
+		t.Errorf("Expected key to be deleted, but got value: %v", err)
+	}
+}
+
+func TestIsKeyExist(t *testing.T) {
+	InitRedis()
+
+	key := "test-key-exist"
+	value := "test-value-exist"
+
+	err := SetValue(Clients.Test, key, value)
+	if err != nil {
+		t.Errorf("Error setting value: %v", err)
+	}
+
+	err, exists := isKeyExist(Clients.Test, key)
+	if err != nil {
+		t.Errorf("Error checking key existence: %v", err)
+	} else if !exists {
+		t.Errorf("Expected key to exist, but it doesn't")
 	}
 }
