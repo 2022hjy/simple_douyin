@@ -81,7 +81,7 @@ func CommentAction(c *gin.Context) {
 			})
 			return
 		}
-		err = commentService.DeleteComment(commentId)
+		DeleteCommentRes, err := commentService.DeleteComment(commentId)
 		if err != nil {
 			c.JSON(http.StatusOK, CommentActionResponse{
 				Response: Response{StatusCode: -1,

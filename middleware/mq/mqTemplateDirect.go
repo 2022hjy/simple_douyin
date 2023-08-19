@@ -9,6 +9,13 @@ import (
 	"syscall"
 )
 
+var (
+	// 所有的队列变量
+	CommentMQ amqp.Queue
+	LikeMQ    amqp.Queue
+	FollowMQ  amqp.Queue
+)
+
 func InitMq() {
 	// 建立连接
 	conn, err := amqp.Dial(config.MqUrl)
@@ -33,7 +40,7 @@ func InitMq() {
 
 	// 声明队列
 	queueName := "CommentMQ"
-	CommentMQ, err := ch.QueueDeclare(
+	CommentMQ, err = ch.QueueDeclare(
 		queueName, // name
 		true,      // durable
 		false,     // delete when unused
@@ -45,7 +52,7 @@ func InitMq() {
 
 	// 声明队列
 	queueName = "LikeMQ"
-	LikeMQ, err := ch.QueueDeclare(
+	LikeMQ, err = ch.QueueDeclare(
 		queueName, // name
 		true,      // durable
 		false,     // delete when unused
@@ -57,7 +64,7 @@ func InitMq() {
 
 	// 声明队列
 	queueName = "FollowMQ"
-	FollowMQ, err := ch.QueueDeclare(
+	FollowMQ, err = ch.QueueDeclare(
 		queueName, // name
 		true,      // durable
 		false,     // delete when unused

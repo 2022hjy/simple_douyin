@@ -20,23 +20,23 @@ var NilError = redis.Nil
 // keyAccessMap 用于记录 key 的访问次数
 var keyAccessMap = make(map[string]int)
 
+var Clients *RedisClients
+
 // MRLock (MutexRedisLock）keyAccessMapLock 用于保护 keyAccessMap
 // 注意：MRLock应该是一个指针类型，而不是一个值类型。因为您需要的是一个全局的互斥锁，而不是一个值的副本。
 var MRLock = &sync.Mutex{}
 
 type RedisClients struct {
-	Test           *redis.Client
-	VCid           *redis.Client
-	CVid           *redis.Client
-	CIdComment     *redis.Client
-	UVid           *redis.Client
-	VUid           *redis.Client
-	UserFollowers  *redis.Client
-	UserFollowings *redis.Client
-	UserFriends    *redis.Client
+	Test             *redis.Client
+	Video_CommentIdR *redis.Client
+	//CVid           *redis.Client
+	CommentId_CommentR *redis.Client
+	UVid               *redis.Client
+	VUid               *redis.Client
+	UserFollowers      *redis.Client
+	UserFollowings     *redis.Client
+	UserFriends        *redis.Client
 }
-
-var Clients *RedisClients
 
 const (
 	ProdRedisAddr = config.RedisAddr
@@ -51,17 +51,17 @@ func InitRedis() {
 			Password: ProRedisPwd,
 			DB:       0,
 		}),
-		VCid: redis.NewClient(&redis.Options{
+		Video_CommentIdR: redis.NewClient(&redis.Options{
 			Addr:     ProdRedisAddr,
 			Password: ProRedisPwd,
 			DB:       1,
 		}),
-		CVid: redis.NewClient(&redis.Options{
-			Addr:     ProdRedisAddr,
-			Password: ProRedisPwd,
-			DB:       2,
-		}),
-		CIdComment: redis.NewClient(&redis.Options{
+		//CVid: redis.NewClient(&redis.Options{
+		//	Addr:     ProdRedisAddr,
+		//	Password: ProRedisPwd,
+		//	DB:       2,
+		//}),
+		CommentId_CommentR: redis.NewClient(&redis.Options{
 			Addr:     ProdRedisAddr,
 			Password: ProRedisPwd,
 			DB:       3,
@@ -94,15 +94,6 @@ func InitRedis() {
 	}
 }
 
-// SetValue 设置 Redis 键值对
-func SetValue(client *redis.Client, key string, value interface{}) error {
-	if client == nil {
-		return errors.New("client is nil")
-	}
-	// 设置 2 min 过期，如果 expiration 为 0 表示永不过期
-	return client.Set(Ctx, key, value, 2*time.Minute).Err()
-}
-
 /*
 思路：一开始去 set 数值在 redis 中的时候，我们采取随机数种子随机产生一个短时间的过期的时间数值。
 当这个这个数值（键值对）被采取了 get 操作的时候，进行一个缓存的过期时长的一个升级。
@@ -110,19 +101,30 @@ func SetValue(client *redis.Client, key string, value interface{}) error {
 同时，如果出现了缓存穿透的情况，可以采取缓存空数据的方式，将空数据缓存一段时间，防止缓存穿透。在代码GetKeyAndUpdateExpiration内部也已经实现
 */
 
-// SetValueWithRandomExp 设置 Redis 键值对，过期时间随机
+// SetValueWithRandomExp 设置 Redis 集合的批量添加，采取过期时间随机
 func SetValueWithRandomExp(client *redis.Client, key string, value interface{}) error {
 	if client == nil {
 		return errors.New("client is nil")
 	}
 	rand.Seed(time.Now().UnixNano())
 	exp := time.Duration(rand.Intn(20)) * time.Minute
+
 	SetErr := client.Set(Ctx, key, value, exp).Err()
 	if SetErr != nil {
 		log.Fatalf("redis set error: %v\n", SetErr)
 	}
 	return SetErr
 }
+
+/*
+
+似乎没有必要，因为在单个数值添加也没有关系，只有在批量添加的时候才有必要，
+addErr := client.SAdd(Ctx, key, value, exp).Err()
+	if addErr != nil {
+		log.Fatalf("redis set error: %v\n", addErr)
+		return addErr
+	}
+*/
 
 // GetKeyAndUpdateExpiration 获取 Redis 中的值，并更新（膨胀）过期时间
 func GetKeyAndUpdateExpiration(client *redis.Client, key string) (string, error) {
@@ -151,12 +153,48 @@ func GetKeyAndUpdateExpiration(client *redis.Client, key string) (string, error)
 	return val, nil
 }
 
+// DeleteKey 删除 Redis 中的键值对，线程安全
+func DeleteKey(client *redis.Client, key string) error {
+	if client == nil {
+		return errors.New("client is nil")
+	}
+	MRLock.Lock()
+	delete(keyAccessMap, key)
+	MRLock.Unlock()
+	return client.Del(Ctx, key).Err()
+}
+
+// isKeyExist 判断 Redis 中是否存在某个键
+func isKeyExist(client *redis.Client, key string) (error, bool) {
+	if client == nil {
+		return errors.New("client is nil"), false
+	}
+	// 判断键是否存在
+	isExist, err := client.Exists(Ctx, key).Result()
+	if err != nil {
+		return err, false
+	}
+	if isExist == 0 {
+		return nil, false
+	}
+	return nil, true
+}
+
 // GetValue 获取 Redis 中的值（常规）
 func GetValue(client *redis.Client, key string) (string, error) {
 	if client == nil {
 		return "", errors.New("client is nil")
 	}
 	return client.Get(Ctx, key).Result()
+}
+
+// SetValue 设置 Redis 键值对
+func SetValue(client *redis.Client, key string, value interface{}) error {
+	if client == nil {
+		return errors.New("client is nil")
+	}
+	// 设置 2 min 过期，如果 expiration 为 0 表示永不过期
+	return client.Set(Ctx, key, value, 2*time.Minute).Err()
 }
 
 func testRedis() {
