@@ -8,12 +8,12 @@ import (
 )
 
 type Follow struct {
-	Id          int64
-	UserId      int64
-	FollowingId int64
-	Followed    int8
-	CreatedAt   string
-	UpdatedAt   string
+	Id          int64  //关系ID
+	UserId      int64  //用户ID
+	FollowingId int64  //关注的用户ID
+	Followed    int8   //是否已关注，1表示已关注，0表示未关注
+	CreatedAt   string //记录创建时间
+	UpdatedAt   string //记录更新时间
 }
 
 func (Follow) TableName() string {
