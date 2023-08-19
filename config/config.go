@@ -16,6 +16,21 @@ const (
 	MqUrl = "amqp://guest:guest@localhost:5672/"
 )
 
+// 视频模块相关配置
+const (
+	// VIDEO_INIT_NUM 每位作者初始展示的视频数量
+	VIDEO_INIT_NUM = 10
+	// VIDEO_NUM_PER_REFRESH 表示每次刷新时展示的视频数量，值为 6。
+	VIDEO_NUM_PER_REFRESH = 6
+
+	CUSTOM_DOMAIN = "CUSTOM_DOMAIN"
+	OSS_VIDEO_DIR = "OSS_VIDEO_DIR"
+	// PLAY_URL_PREFIX 播放视频的URL前缀
+	PLAY_URL_PREFIX = CUSTOM_DOMAIN + OSS_VIDEO_DIR
+	// COVER_URL_SUFFIX 频封面图的URL后缀，通过该后缀可以对视频进行截图并获取封面图
+	COVER_URL_SUFFIX = "?x-oss-process=video/snapshot,t_2000,m_fast"
+)
+
 // JWT配置
 const (
 	// TokenExpireDuration token过期时间
