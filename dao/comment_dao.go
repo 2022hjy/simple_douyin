@@ -39,9 +39,20 @@ func AddComment(comment Comment) (Comment, error) {
 }
 
 func DeleteComment(commentId int64) error {
-	result := Db.Where("id = ?", commentId).Delete(&Comment{})
+	result := Db.Model(Comment{}).Where("id = ?", commentId).Delete(&Comment{})
 	return handleDBError(result, "Delete comment")
 }
+
+// deprecated function
+//func GetCommentId(userId int64, videoId int64, content string) (int, error) {
+//	var comment Comment
+//	result := Db.Where("user_id = ? and video_id = ? and content = ?", userId, videoId, content).
+//		First(&comment)
+//	if result.Error != nil {
+//		return 0, result.Error
+//	}
+//	return int(comment.Id), nil
+//}
 
 func GetCommentList(videoId int64) ([]Comment, error) {
 	var commentList []Comment
