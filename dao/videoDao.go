@@ -8,16 +8,13 @@ import (
 )
 
 type Video struct {
-	Id            int64     `json:"id"`             // 视频 Id
-	UserInfoId    int64     `json:"user_info_id"`   // 视频作者 Id
-	Title         string    `json:"title"`          // 视频标题
-	PlayUrl       string    `json:"play_url"`       // 视频播放地址
-	CoverUrl      string    `json:"cover_url"`      // 视频封面地址
-	IsFavorite    int       `json:"is_favorite"`    // 是否被like
-	FavoriteCount int       `json:"favorite_count"` // like数
-	CommentCount  int       `json:"comment_count"`  // 评论数
-	CreatedAt     time.Time // 视频创建时间
-	UpdatedAt     time.Time // 视频更新时间
+	Id         int64     `json:"id"`           // 视频 Id
+	UserInfoId int64     `json:"user_info_id"` // 视频作者 Id
+	Title      string    `json:"title"`        // 视频标题
+	PlayUrl    string    `json:"play_url"`     // 视频播放地址
+	CoverUrl   string    `json:"cover_url"`    // 视频封面地址
+	CreatedAt  time.Time // 视频创建时间
+	UpdatedAt  time.Time // 视频更新时间
 }
 
 // TableName 数据库表名映射到 Video 结构体

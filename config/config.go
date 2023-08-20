@@ -28,7 +28,11 @@ const (
 	// PLAY_URL_PREFIX 播放视频的URL前缀
 	PLAY_URL_PREFIX = CUSTOM_DOMAIN + OSS_VIDEO_DIR
 	// COVER_URL_SUFFIX 频封面图的URL后缀，通过该后缀可以对视频进行截图并获取封面图
-	COVER_URL_SUFFIX = "?x-oss-process=video/snapshot,t_2000,m_fast"
+	COVER_URL_SUFFIX      = "?x-oss-process=video/snapshot,t_2000,m_fast"
+	OSS_ACCESS_KEY_ID     = "OSS_ACCESS_KEY_ID"
+	OSS_ACCESS_KEY_SECRET = "OSS_ACCESS_KEY_SECRET"
+	OSS_BUCKET_NAME       = "OSS_BUCKET_NAME"
+	OSS_ENDPOINT          = "OSS_ENDPOINT"
 )
 
 // JWT配置
