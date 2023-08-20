@@ -9,7 +9,7 @@ import (
 
 type VideoListResponse struct {
 	Response
-	VideoList []Video `json:"video_list"`
+	VideoList []VideoResponse `json:"video_list"`
 }
 
 // Publish check token then save upload file to public directory

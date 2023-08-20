@@ -66,19 +66,12 @@ import (
     "video_list": []
 }
 */
-package dao
-
-import (
-"errors"
-"log"
-"time"
-)
 
 type FavoriteDao struct {
 	Id        int64
 	UserId    int64
 	VideoId   int64
-	Favorited int8
+	Favorited int // 0: not favorite, 1: favorite
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
@@ -152,7 +145,7 @@ func InsertFavoriteInfo(favorite FavoriteDao) error {
 	return nil
 }
 
-func IsVideoFavoritedByUser(userId int64, videoId int64) (int8, error) {
+func IsVideoFavoritedByUser(userId int64, videoId int64) (int, error) {
 	var isFavorited int8
 	result := Db.Model(FavoriteDao{}).Select("is_favorite").Where("user_id= ? and video_id= ?", userId, videoId).First(&isFavorited)
 	c := result.RowsAffected

@@ -11,8 +11,8 @@ import (
 
 type FeedResponse struct {
 	Response
-	VideoList []service.Video `json:"video_list"`
-	NextTime  int64           `json:"next_time"`
+	VideoList []VideoResponse `json:"video_list,omitempty"`
+	NextTime  int64           `json:"next_time,omitempty"`
 }
 
 // Feed 不限制登录状态，返回按投稿时间倒序的视频列表，视频数由服务端控制，单次最多30个

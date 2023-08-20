@@ -26,12 +26,14 @@ var Clients *RedisClients
 // 注意：MRLock应该是一个指针类型，而不是一个值类型。因为您需要的是一个全局的互斥锁，而不是一个值的副本。
 var MRLock = &sync.Mutex{}
 
+// RedisClients redis 客户端
+// 命名规则：[Key]_[Val]R
 type RedisClients struct {
-	Test             *redis.Client
-	Video_CommentIdR *redis.Client
-	//CVid           *redis.Client
+	Test               *redis.Client
+	Video_CommentIdR   *redis.Client
 	CommentId_CommentR *redis.Client
-	UVid               *redis.Client
+	UserId_FVideoIdR   *redis.Client
+	VideoId_VideoR     *redis.Client
 	VUid               *redis.Client
 	UserFollowers      *redis.Client
 	UserFollowings     *redis.Client
@@ -66,7 +68,7 @@ func InitRedis() {
 			Password: ProRedisPwd,
 			DB:       3,
 		}),
-		UVid: redis.NewClient(&redis.Options{
+		UserId_FVideoIdR: redis.NewClient(&redis.Options{
 			Addr:     ProdRedisAddr,
 			Password: ProRedisPwd,
 			DB:       4,
@@ -210,20 +212,19 @@ func DeleteKey(client *redis.Client, key string) error {
 	return client.Del(Ctx, key).Err()
 }
 
-// isKeyExist 判断 Redis 中是否存在某个键
-func isKeyExist(client *redis.Client, key string) (error, bool) {
+// IsKeyExist 判断 Redis 中是否存在某个键
+// 返回值：bool，error。如果存在，返回 true，nil；如果不存在，返回 false，nil；如果出错，返回 false，error
+func IsKeyExist(client *redis.Client, key string) (bool, error) {
 	if client == nil {
-		return errors.New("client is nil"), false
+		return false, errors.New("client is nil")
 	}
-	// 判断键是否存在
+
 	isExist, err := client.Exists(Ctx, key).Result()
 	if err != nil {
-		return err, false
+		return false, err
 	}
-	if isExist == 0 {
-		return nil, false
-	}
-	return nil, true
+
+	return isExist == 1, nil
 }
 
 // GetValue 获取 Redis 中的值（常规）

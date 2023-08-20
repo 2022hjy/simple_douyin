@@ -5,21 +5,38 @@ type Response struct {
 	StatusMsg  string `json:"status_msg,omitempty"`
 }
 
-type Video struct {
-	Id            int64  `json:"id,omitempty"`
-	Author        User   `json:"author"`
-	PlayUrl       string `json:"play_url" json:"play_url,omitempty"`
-	CoverUrl      string `json:"cover_url,omitempty"`
-	FavoriteCount int64  `json:"favorite_count,omitempty"`
-	CommentCount  int64  `json:"comment_count,omitempty"`
-	IsFavorite    bool   `json:"is_favorite,omitempty"`
+// VideoResponse data 内部返回给前端的结构体
+type VideoResponse struct {
+	Id            int64        `json:"id,omitempty"`
+	Author        UserResponse `json:"author"`
+	PlayUrl       string       `json:"play_url,omitempty"`
+	CoverUrl      string       `json:"cover_url,omitempty"`
+	FavoriteCount int64        `json:"favorite_count,omitempty"`
+	CommentCount  int64        `json:"comment_count,omitempty"`
+	IsFavorite    bool         `json:"is_favorite,omitempty"`
+	Title         string       `json:"title,omitempty"`
 }
 
-type Comment struct {
-	Id         int64  `json:"id,omitempty"`
-	User       User   `json:"user"`
-	Content    string `json:"content,omitempty"`
-	CreateDate string `json:"create_date,omitempty"`
+// UserResponse  data 返回给前端的结构体
+type UserResponse struct {
+	Avatar          string `json:"avatar"`           // 用户头像
+	BackgroundImage string `json:"background_image"` // 用户个人页顶部大图
+	FavoriteCount   int64  `json:"favorite_count"`   // 喜欢数
+	FollowCount     int64  `json:"follow_count"`     // 关注总数
+	FollowerCount   int64  `json:"follower_count"`   // 粉丝总数
+	ID              int64  `json:"id"`               // 用户id
+	IsFollow        bool   `json:"is_follow"`        // true-已关注，false-未关注
+	Name            string `json:"name"`             // 用户名称
+	Signature       string `json:"signature"`        // 个人简介
+	TotalFavorited  string `json:"total_favorited"`  // 获赞数量
+	WorkCount       int64  `json:"work_count"`       // 作品数
+}
+
+type CommentResponse struct {
+	Id         int64        `json:"id,omitempty"`
+	User       UserResponse `json:"user"`
+	Content    string       `json:"content,omitempty"`
+	CreateDate string       `json:"create_date,omitempty"`
 }
 
 type User struct {

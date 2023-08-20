@@ -99,7 +99,7 @@ func TestIsKeyExist(t *testing.T) {
 		t.Errorf("Error setting value: %v", err)
 	}
 
-	err, exists := isKeyExist(Clients.Test, key)
+	err, exists := IsKeyExist(Clients.Test, key)
 	if err != nil {
 		t.Errorf("Error checking key existence: %v", err)
 	} else if !exists {
