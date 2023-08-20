@@ -5,6 +5,15 @@ import (
 	"simple_douyin/model"
 )
 
+type UserDAO struct {
+	UserId          int64  `json:"id" gorm:"primaryKey;autoIncrement:true"`
+	Username        string `json:"name" gorm:"unique;not null"`
+	Password        string `json:"-"` // 不返回给前端
+	Avatar          string `json:"avatar,omitempty" gorm:"default:''"`
+	BackgroundImage string `json:"background_image,omitempty" gorm:"default:''"`
+	Signature       string `json:"signature,omitempty" gorm:"default:''"`
+}
+
 var Db = database.Db
 
 func InsertUser(user *model.User) bool {

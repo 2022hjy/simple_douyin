@@ -21,19 +21,22 @@ CREATE TABLE `comment`
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='评论表';
 
 -- Table structure for user_favorite_video
+-- 如果存在，则删除表格`favorite`
 DROP TABLE IF EXISTS `favorite`;
+-- 创建表格`favorite`
 CREATE TABLE `favorite`
 (
-    `id`           bigint unsigned NOT NULL AUTO_INCREMENT UNIQUE COMMENT 'Favorite video unique ID',
-    `user_id`      bigint unsigned NOT NULL COMMENT 'User who favorited the video, reference ID',
-    `video_id`     bigint unsigned NOT NULL COMMENT 'Video that was favorited, reference ID',
-    `is_favorite`  tinyint(1) unsigned NOT NULL DEFAULT 0 COMMENT 'Whether the video is favorited, 1 means favorited, 0 means not favorited',
-    `created_at`   datetime(3) DEFAULT NULL COMMENT 'Record creation time',
+    `id`           bigint unsigned NOT NULL AUTO_INCREMENT UNIQUE COMMENT '点赞视频的唯一标识',
+    `user_id`      bigint unsigned NOT NULL COMMENT '点赞视频的用户，关联ID',
+    `video_id`     bigint unsigned NOT NULL COMMENT '被点赞的视频，关联ID',
+    `is_favorite`  tinyint(1) unsigned NOT NULL DEFAULT 0 COMMENT '视频是否已被点赞，1 表示已点赞，0 表示未点赞',
+    `created_at`   datetime(3) DEFAULT NULL COMMENT '记录创建时间',
     PRIMARY KEY (`user_id`, `video_id`),
     KEY            `fk_user_favorite_video` (`video_id`) USING BTREE,
     CONSTRAINT `fk_user_favorite_user_info` FOREIGN KEY (`user_id`) REFERENCES `user_info` (`id`),
     CONSTRAINT `fk_user_favorite_video` FOREIGN KEY (`video_id`) REFERENCES `video` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='User favorite video table';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='用户点赞视频表';
+
 
 
 ---- Table structure for user_info

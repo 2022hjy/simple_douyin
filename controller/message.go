@@ -58,7 +58,7 @@ func MessageAction(c *gin.Context) {
 	messageService := service.GetMessageServiceInstance()
 	err = messageService.SendMessage(id, loginUserId, targetUserId, content, targetActionType)
 	if err != nil {
-		c.JSON(http.StatusOK, Response{StatusCode: 1, StatusMsg: "Send Message 接口错误"})
+		c.JSON(http.StatusBadRequest, Response{StatusCode: 1, StatusMsg: "Send Message 接口错误"})
 	}
 	c.JSON(http.StatusOK, Response{StatusCode: 0})
 }

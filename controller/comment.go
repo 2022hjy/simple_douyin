@@ -26,12 +26,12 @@ func init() {
 
 type CommentListResponse struct {
 	Response
-	CommentList []Comment `json:"comment_list,omitempty"`
+	CommentList []CommentResponse `json:"comment_list,omitempty"`
 }
 
 type CommentActionResponse struct {
 	Response
-	Comment Comment `json:"comment,omitempty"`
+	Comment CommentResponse `json:"comment,omitempty"`
 }
 
 // CommentAction no practical effect, just check if token is valid

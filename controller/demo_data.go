@@ -1,6 +1,6 @@
 package controller
 
-var DemoVideos = []Video{
+var DemoVideos = []VideoResponse{
 	{
 		Id:            1,
 		Author:        DemoUser,
@@ -12,11 +12,11 @@ var DemoVideos = []Video{
 	},
 }
 
-var DemoComments = []Comment{
+var DemoComments = []CommentResponse{
 	{
 		Id:         1,
 		User:       DemoUser,
-		Content:    "Test Comment",
+		Content:    "Test CommentResponse",
 		CreateDate: "05-01",
 	},
 }
