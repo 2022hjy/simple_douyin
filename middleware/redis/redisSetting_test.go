@@ -2,6 +2,7 @@ package redis
 
 import (
 	"testing"
+	"time"
 )
 
 func TestSetValueWithRandomExp(t *testing.T) {
@@ -104,5 +105,28 @@ func TestIsKeyExist(t *testing.T) {
 		t.Errorf("Error checking key existence: %v", err)
 	} else if !exists {
 		t.Errorf("Expected key to exist, but it doesn't")
+	}
+}
+
+func TestSetHashWithExpiration(t *testing.T) {
+	InitRedis()
+	data := map[string]interface{}{
+		"key1": "value1",
+		"key2": "value2",
+		"key3": "value3",
+	}
+	err := SetHashWithExpiration(Clients.Test, "test-hash", data, 2*time.Minute)
+	if err != nil {
+		t.Errorf("Error setting hash: %v", err)
+	}
+	hash, err := GetHash(Clients.Test, "test-hash")
+	if err != nil {
+		t.Errorf("Error getting hash: %v", err)
+	}
+	// 将hash与data进行比较
+	for k, v := range *hash {
+		if data[k] != v {
+			t.Errorf("Expected value %s, got %s", data[k], v)
+		}
 	}
 }
