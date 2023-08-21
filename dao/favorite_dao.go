@@ -145,17 +145,26 @@ func InsertFavoriteInfo(favorite FavoriteDao) error {
 	return nil
 }
 
-func IsVideoFavoritedByUser(userId int64, videoId int64) (int, error) {
+func DeleteFavoriteInfo(userId int64, videoId int64) error {
+	err := Db.Model(FavoriteDao{}).Where("user_id = ? and video_id = ?", userId, videoId).Delete(&FavoriteDao{}).Error
+	if err != nil {
+		log.Println(err.Error())
+		return errors.New("delete favorite failed")
+	}
+	return nil
+}
+
+func IsVideoFavoritedByUser(userId int64, videoId int64) (bool, error) {
 	var isFavorited int8
 	result := Db.Model(FavoriteDao{}).Select("is_favorite").Where("user_id= ? and video_id= ?", userId, videoId).First(&isFavorited)
 	c := result.RowsAffected
 	if c == 0 {
-		return -1, errors.New("current user haven not favorited current video")
+		return false, errors.New("current user haven not favorited current video")
 	}
 	if result.Error != nil {
 		log.Println(result.Error)
 	}
-	return isFavorited, nil
+	return true, nil
 }
 
 func GetFavoriteCountByUser(userId int64) (int64, error) {

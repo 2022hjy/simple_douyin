@@ -34,12 +34,21 @@ type RedisClients struct {
 	VideoId_CommentIdR *redis.Client
 	CommentId_CommentR *redis.Client
 	//F : favorite
-	UserId_FVideoIdR *redis.Client
-	VideoId_VideoR   *redis.Client
-	UserId_UserR     *redis.Client
-	UserFollowers    *redis.Client
-	UserFollowings   *redis.Client
-	UserFriends      *redis.Client
+	UserId_FavoriteVideoIdR *redis.Client
+	VideoId_VideoR          *redis.Client
+	//点赞数 和 被点赞数
+	//获赞数：value 对应 total_favorited（前端返回值
+	//此方法已经 deprecated 了，不再使用
+	//只是为了给大家提个醒，现在的使用的思路是使用上面的UserId_FavoriteVideoIdR的 redis
+	//：直接通过获取的关联的 id 集合，从而去获得对应的点赞的视频数目（len 方法去获取长度）
+	//UserId_FavoritedNumR *redis.Client
+
+	//（给别人的）点赞数：value 对应 favorite_count （前端返回值
+	UserId_FavoriteNumR *redis.Client
+	UserId_UserR        *redis.Client
+	UserId_FollowersR   *redis.Client
+	UserId_FollowingsR  *redis.Client
+	UserId_FriendsR     *redis.Client
 }
 
 const (
@@ -70,7 +79,7 @@ func InitRedis() {
 			Password: ProRedisPwd,
 			DB:       3,
 		}),
-		UserId_FVideoIdR: redis.NewClient(&redis.Options{
+		UserId_FavoriteVideoIdR: redis.NewClient(&redis.Options{
 			Addr:     ProdRedisAddr,
 			Password: ProRedisPwd,
 			DB:       4,
@@ -85,7 +94,7 @@ func InitRedis() {
 			Password: ProRedisPwd,
 			DB:       11,
 		}),
-		UserFollowers: redis.NewClient(&redis.Options{
+		User_FollowersR: redis.NewClient(&redis.Options{
 			Addr:     ProdRedisAddr,
 			Password: ProRedisPwd,
 			DB:       12,

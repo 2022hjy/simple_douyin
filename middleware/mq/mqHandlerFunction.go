@@ -1,6 +1,11 @@
 package mq
 
-import "fmt"
+import (
+	"encoding/json"
+	"fmt"
+	"log"
+	"simple_douyin/dao"
+)
 
 // MessageHandler 定义消息处理函数
 // 按照注释的要求去定义消息处理函数：return的值是一个函数，此函数是在需要处理的 service 层内部的函数
@@ -16,12 +21,30 @@ func DeleteComment(msg string) {
 	fmt.Println("Deleting comment:", msg)
 }
 
-func AddLike(msg string) {
-	fmt.Println("Adding like:", msg)
+func AddLike(body string) {
+	favorite := dao.FavoriteDao{}
+	err := json.Unmarshal([]byte(body), &favorite)
+	if err != nil {
+		log.Println("Failed to unmarshal favorite:", err)
+		return
+	}
+	err = dao.InsertFavoriteInfo(favorite)
+	if err != nil {
+		log.Println("Failed to add like:", err)
+	}
 }
 
-func RemoveLike(msg string) {
-	fmt.Println("Removing like:", msg)
+func RemoveLike(body string) {
+	favorite := dao.FavoriteDao{}
+	err := json.Unmarshal([]byte(body), &favorite)
+	if err != nil {
+		log.Println("Failed to unmarshal favorite:", err)
+		return
+	}
+	err = dao.DeleteFavoriteInfo(favorite.UserId, favorite.VideoId)
+	if err != nil {
+		log.Println("Failed to remove like:", err)
+	}
 }
 
 func AddFollow(msg string) {
