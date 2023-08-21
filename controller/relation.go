@@ -1,13 +1,16 @@
 package controller
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"simple_douyin/service"
+	"strconv"
 )
 
 type UserListResponse struct {
 	Response
-	UserList []User `json:"user_list"`
+	UserList []UserResponse `json:"user_list"`
 }
 
 // RelationAction no practical effect, just check if token is valid
@@ -23,11 +26,41 @@ func RelationAction(c *gin.Context) {
 
 // FollowList all users have same follow list
 func FollowList(c *gin.Context) {
+	userId, err := strconv.ParseInt(c.Query("user_id"), 10, 64)
+
+	fmt.Println(userId)
+	if err != nil {
+		fmt.Printf("fail")
+		c.JSON(http.StatusOK, UserListResponse{
+			Response{
+				StatusCode: 400,
+				StatusMsg:  "请求参数格式错误",
+			},
+			nil,
+		})
+		return
+	}
+
+	fsi := service.NewFSIInstance()
+	followings, err1 := fsi.GetFollowings(userId)
+	if err1 != nil {
+		fmt.Printf("fail")
+		c.JSON(http.StatusOK, UserListResponse{
+			Response{
+				StatusCode: 500,
+				StatusMsg:  "获取关注列表失败",
+			},
+			nil,
+		})
+		return
+	}
+
 	c.JSON(http.StatusOK, UserListResponse{
-		Response: Response{
-			StatusCode: 0,
+		Response{
+			StatusCode: 200,
+			StatusMsg:  "获取关注列表成功",
 		},
-		UserList: []User{DemoUser},
+		followings,
 	})
 }
 
