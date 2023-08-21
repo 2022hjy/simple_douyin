@@ -20,3 +20,4 @@ func (u *UserService) GetUserFromRedisByUserId(userId int64) (*model.User, error
 	}
 
 }
+

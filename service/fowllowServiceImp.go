@@ -347,7 +347,7 @@ func (followService *FollowServiceImp) BuildUser(userId int64, users []controlle
 	for i := 0; i < len(ids); i++ {
 
 		// 用户id赋值
-		users[i].ID = ids[i]
+		users[i].Id = ids[i]
 
 		// 用户name赋值
 		var err1 error
