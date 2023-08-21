@@ -59,9 +59,7 @@ func RelationAction(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, Response{StatusCode: 0, StatusMsg: "操作成功"})
 }
-
-// FollowList all users have same follow list
-func FollowList(c *gin.Context) {
+func Followlist(c *gin.Context) {
 	userId, err := strconv.ParseInt(c.Query("user_id"), 10, 64)
 
 	fmt.Println(userId)
@@ -102,20 +100,82 @@ func FollowList(c *gin.Context) {
 
 // FollowerList all users have same follower list
 func FollowerList(c *gin.Context) {
+	userId, err := strconv.ParseInt(c.Query("user_id"), 10, 64)
+
+	fmt.Println(userId)
+
+	if err != nil {
+		fmt.Printf("fail")
+		c.JSON(http.StatusOK, UserListResponse{
+			Response{
+				StatusCode: -1,
+				StatusMsg:  "请求参数格式错误",
+			},
+			nil,
+		})
+		return
+	}
+
+	fsi := service.NewFSIInstance()
+	followers, err1 := fsi.GetFollowers(userId)
+	if err1 != nil {
+		fmt.Printf("fail")
+		c.JSON(http.StatusOK, UserListResponse{
+			Response{
+				StatusCode: -1,
+				StatusMsg:  "获取粉丝列表失败",
+			},
+			nil,
+		})
+		return
+	}
+
 	c.JSON(http.StatusOK, UserListResponse{
-		Response: Response{
+		Response{
 			StatusCode: 0,
+			StatusMsg:  "获取粉丝列表成功",
 		},
-		UserList: []UserResponse{DemoUser},
+		followers,
 	})
 }
 
 // FriendList all users have same friend list
 func FriendList(c *gin.Context) {
-	c.JSON(http.StatusOK, UserListResponse{
-		Response: Response{
+	userId, err := strconv.ParseInt(c.Query("user_id"), 10, 64)
+
+	fmt.Println(userId)
+
+	if err != nil {
+		fmt.Printf("fail")
+		c.JSON(http.StatusOK, FriendUserListResponse{
+			Response{
+				StatusCode: -1,
+				StatusMsg:  "请求参数格式错误",
+			},
+			nil,
+		})
+		return
+	}
+
+	fsi := service.NewFSIInstance()
+	followers, err1 := fsi.GetFriends(userId)
+	if err1 != nil {
+		fmt.Printf("fail")
+		c.JSON(http.StatusOK, FriendUserListResponse{
+			Response{
+				StatusCode: -1,
+				StatusMsg:  "获取好友列表失败",
+			},
+			nil,
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, FriendUserListResponse{
+		Response{
 			StatusCode: 0,
+			StatusMsg:  "获取好友列表成功",
 		},
-		UserList: []UserResponse{DemoUser},
+		followers,
 	})
 }
