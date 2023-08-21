@@ -1,7 +1,11 @@
 package service
 
 import (
+	"encoding/json"
 	"errors"
+	"simple_douyin/config"
+	"simple_douyin/middleware/redis"
+	"strconv"
 	"sync"
 
 	redisv9 "github.com/redis/go-redis/v9"
@@ -196,4 +200,24 @@ func (f *QueryUserInfoFlow) packageInfo() error {
 		FavoriteCount:  f.favoriteCount,
 	}
 	return nil
+}
+
+func (u *UserService) GetUserFromRedisByUserId(userId int64) (dao.User, error) {
+	UIdUClients := redis.Clients.UserId_UserR
+	key := config.UserId_User_KEY_PREFIX + strconv.FormatInt(userId, 10)
+	user, err := redis.GetKeysAndUpdateExpiration(UIdUClients, key)
+	if err != nil {
+		return dao.User{}, errors.New("get user from redis failed")
+	}
+	User, ok := user.(string)
+	if !ok {
+		return dao.User{}, errors.New("type assertion failed")
+	}
+	//反序列化
+	var UserDao dao.User
+	err = json.Unmarshal([]byte(User), &UserDao)
+	if err != nil {
+		return dao.User{}, errors.New("unmarshal failed")
+	}
+	return UserDao, nil
 }

@@ -6,20 +6,13 @@ import (
 	"time"
 )
 
-func ()  {
-	
-}
-
-
-
-
 // ConvertDBUserToResponse 将数据库中的用户信息转换为响应的用户信息
 // Finish this function
-func ConvertDBUserToResponse(dbUser dao.UserDAO, FavoriteCount int64, FollowCount int64, FollowerCount int64, IsFollow bool, TotalFavorited string, WorkCount int64) controller.UserResponse {
+func ConvertDBUserToResponse(dbUser dao.User, FavoriteCount int64, FollowCount int64, FollowerCount int64, IsFollow bool, TotalFavorited string, WorkCount int64) controller.UserResponse {
 	return controller.UserResponse{
 		Avatar:          dbUser.Avatar,
 		BackgroundImage: dbUser.BackgroundImage,
-		ID:              dbUser.UserId,
+		Id:              dbUser.UserId,
 		Name:            dbUser.Username,
 		Signature:       dbUser.Signature,
 		FavoriteCount:   FavoriteCount,
@@ -45,8 +38,8 @@ func ConvertDBVideoToResponse(dbVideo dao.Video, User controller.UserResponse) c
 		Author:        User,
 		PlayUrl:       dbVideo.PlayUrl,
 		CoverUrl:      dbVideo.CoverUrl,
-		FavoriteCount: int64(dbVideo.FavoriteCount),
-		CommentCount:  int64(dbVideo.CommentCount),
+		FavoriteCount: dbVideo.FavoriteCount,
+		CommentCount:  dbVideo.CommentCount,
 		IsFavorite:    isFavorite,
 		Title:         dbVideo.Title,
 	}

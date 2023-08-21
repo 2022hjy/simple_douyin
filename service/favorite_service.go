@@ -7,6 +7,7 @@ import (
 	"log"
 	"simple_douyin/controller"
 	"simple_douyin/dao"
+	"simple_douyin/middleware/mq"
 	"simple_douyin/middleware/redis"
 	"simple_douyin/util"
 	"strconv"
@@ -42,25 +43,40 @@ func GetFavoriteServiceInstance() *FavoriteService {
 	})
 	return favoriteService
 }
-
 func (f *FavoriteService) FavoriteAction(userId int64, videoId int64) error {
-	favorite = dao.FavoriteDao{
+	// 创建一个 FavoriteDao 对象
+	favorite := dao.FavoriteDao{
 		UserId:    userId,
 		VideoId:   videoId,
 		CreatedAt: time.Unix(time.Now().Unix(), 0),
 		UpdatedAt: time.Unix(time.Now().Unix(), 0),
 	}
 
+	// 判断用户是否已经点赞过该视频
 	isFavorited, err := dao.IsVideoFavoritedByUser(userId, videoId)
 
-	go syncLikeRedis(userId, videoId, isFavorited) // 更新redis
+	go syncLikeRedis(userId, videoId, 1) // 更新redis
 
 	go func() {
-		//使用消息队列异步更新数据库
-		if isFavorited == STATUS_NOT_LIKE_BEFORE { // 用户之前没有点赞，所以现在执行点赞操作
-			//todo: 插入一条点赞的新记录
+		// 使用消息队列异步更新数据库
+		if isFavorited { // 用户之前没有点赞，所以现在执行点赞操作
+			// 将 FavoriteDao 对象序列化为 JSON 字符串
+			favoriteJson, err := json.Marshal(favorite)
+			if err != nil {
+				log.Println("Failed to marshal favorite:", err)
+				return
+			}
+			// 发送消息到消息队列
+			mq.SendMessage(mq.FAVORITE_ADD, string(favoriteJson))
 		} else { // 用户之前已经点赞，所以现在执行取消点赞操作
-			//todo: 删除一条点赞的记录
+			// 将 FavoriteDao 对象序列化为 JSON 字符串
+			favoriteJson, err := json.Marshal(favorite)
+			if err != nil {
+				log.Println("Failed to marshal favorite:", err)
+				return
+			}
+			// 发送消息到消息队列
+			mq.SendMessage(mq.FAVORITE_REMOVE, string(favoriteJson))
 		}
 	}()
 
@@ -73,88 +89,6 @@ func (f *FavoriteService) FavoriteAction(userId int64, videoId int64) error {
 	return nil
 }
 
-//
-//func updateFavoriteRedis(videoId int64, favoriteId int64, favorite dao.FavoriteDao) {
-//	// 将 videoId 和 favoriteId 转换为字符串
-//	vId := strconv.FormatInt(videoId, 10)
-//	fId := strconv.FormatInt(favoriteId, 10)
-//
-//	// 将 favorite 对象序列化为 JSON
-//	favoriteJson, err := json.Marshal(favorite)
-//	if err != nil {
-//		log.Fatalf("无法将 favoriteDao 序列化为 JSON，err:%v\n", err)
-//		return
-//	}
-//
-//	// 1. 在 Video_FavoriteId Redis 集合中设置 favoriteId
-//	VFidClient := redis.Clients.Video_FavoriteIdR
-//	if VFidClient == nil {
-//		log.Fatalf("redis 客户端为空")
-//		return
-//	}
-//	err = redis.SetValueWithRandomExp(VFidClient, vId, fId)
-//	if err != nil {
-//		log.Fatalf("设置 redis 失败，err:%v\n", err)
-//		return
-//	}
-//
-//	// 2. 在 FavoriteId_Favorite Redis 散列中设置 favorite 对象
-//	FFidClient := redis.Clients.FavoriteId_FavoriteR
-//	if FFidClient == nil {
-//		log.Fatalf("redis 客户端为空")
-//		return
-//	}
-//	err = redis.SetValueWithRandomExp(FFidClient, fId, string(favoriteJson))
-//	if err != nil {
-//		log.Fatalf("设置 redis 失败，err:%v\n", err)
-//		return
-//	}
-//}
-//
-//func deleteFavoriteRedis(videoId int64, favoriteId int64) error {
-//	// 将 videoId 和 favoriteId 转换为字符串
-//	vId := strconv.FormatInt(videoId, 10)
-//	fId := strconv.FormatInt(favoriteId, 10)
-//
-//	// 1. 从 Video_FavoriteId Redis 集合中移除 favoriteId
-//	VFidClient := redis.Clients.Video_FavoriteIdR
-//	if VFidClient == nil {
-//		log.Fatalf("redis 客户端为空")
-//		return errors.New("redis 客户端为空")
-//	}
-//
-//	// 创建一个分布式互斥锁
-//	pool := goredis.NewPool(VFidClient)
-//	rs := redsync.New(pool)
-//	mutexName := "lock:deleteFavoriteRedis:" + vId + ":" + fId
-//	mutex := rs.NewMutex(mutexName, redsync.WithExpiry(8*time.Second))
-//	if err := mutex.Lock(); err != nil {
-//		log.Printf("无法获取锁，err:%v\n", err)
-//		return err
-//	}
-//	defer mutex.Unlock()
-//
-//	// 从 Video_FavoriteId Redis 集合中删除 favoriteId
-//	err := VFidClient.SRem(vId, fId).Err()
-//	if err != nil {
-//		log.Printf("删除 redis 失败，err:%v\n", err)
-//		return err
-//	}
-//
-//	// 2. 从 FavoriteId_Favorite Redis 散列中删除 favorite 对象
-//	FFidClient := redis.Clients.FavoriteId_FavoriteR
-//	if FFidClient == nil {
-//		log.Fatalf("redis 客户端为空")
-//		return errors.New("redis 客户端为空")
-//	}
-//	err = redis.DeleteKey(FFidClient, fId)
-//	if err != nil {
-//		log.Printf("删除 redis 失败，err:%v\n", err)
-//		return err
-//	}
-//	log.Printf("成功在 redis 中删除 favorite，favoriteId:%v\n", favoriteId)
-//	return nil
-//}
 
 // GetFavoriteList 获取User 点赞过的视频列表
 // 逻辑：先从 UserId_VideoId Redis 集合中获取 videoId，再从 VideoId_Video Redis 集合获得 video 的所有信息（序列化为 json 格式的字符串，取出的时候再反序列化）
@@ -179,7 +113,8 @@ func (f *FavoriteService) getFavoriteListFromRedis(UserId int64) ([]controller.V
 	var favoriteList []dao.FavoriteDao
 
 	// 获取 UserId_FavoriteId Redis 集合客户端
-	UFidClient := redis.Clients.UserId_FVideoIdR
+	//todo: 直接通过获取的关联的 id 集合，从而去获得对应的点赞的视频数目（len 方法去获取长度）
+	UFidClient := redis.Clients.UserId_FavoriteVideoIdR
 	userIdToStr := strconv.FormatInt(UserId, 10)
 
 	// 从 UserId_FavoriteId Redis 集合中获取 FavoriteId 列表
@@ -200,15 +135,6 @@ func (f *FavoriteService) getFavoriteListFromRedis(UserId int64) ([]controller.V
 		log.Println("从 Redis 中获取 videoId 失败", err)
 		return nil, err
 	}
-	//// 将 videoId 转换为 int64 类型
-	//var videoIdInt64 []int64
-	//for i , v := range videoId {
-	//	videoIdInt64[i], err = strconv.ParseInt(v, 10, 64)
-	//	if err != nil {
-	//		log.Println("转换 videoId 失败", err)
-	//		return nil, err
-	//	}
-	//}
 
 	// 从 VideoId_Video Redis 集合中获取 video 对象
 	// todo:实现一个 videoId 到 video 对象的映射，再从 VideoId_Video Redis 集合获得 video 的所有信息（序列化为 json 格式的字符串，取出的时候再反序列化）
@@ -375,7 +301,7 @@ func ImportVideoIdsFromDb(userId int64, videoIds []int64) error {
 }
 
 // 点赞/取消时同步更新 redis 中的数据
-func syncLikeRedis(userId int64, videoId int64, actionType int) error {
+func syncLikeRedis(userId int64, videoId int64, actionType bool) error {
 	userIdStr := strconv.FormatInt(userId, 10)
 	videoIdStr := strconv.FormatInt(videoId, 10)
 	lockName := "lock:syncLikeRedis:" + userIdStr + ":" + videoIdStr
@@ -386,11 +312,11 @@ func syncLikeRedis(userId int64, videoId int64, actionType int) error {
 	}
 	defer mutex.Unlock()
 	switch actionType {
-	case ACTION_UPDATE_LIKE:
+	case true:
 		// 点赞
 		redis.RdbUVid.SAdd(redis.Ctx, userIdStr, videoId)
 		redis.RdbVUid.SAdd(redis.Ctx, videoIdStr, userId)
-	case ACTION_CANCEL_LIKE:
+	case false:
 		// 取消点赞
 		redis.RdbUVid.SRem(redis.Ctx, userIdStr, videoId)
 		redis.RdbVUid.SRem(redis.Ctx, videoIdStr, userId)
@@ -402,21 +328,3 @@ func syncLikeRedis(userId int64, videoId int64, actionType int) error {
 
 // ConvertDBVideoToResponse 转换数据库视频结构体到前端返回结构体
 //todo dao.User 的内容不全，需要补充
-
-
-
-
-
-
-func ConvertDBVideoToResponse(dbVideo dao.Video, author dao.User) controller.VideoResponse {
-	return controller.VideoResponse{
-		Id:            dbVideo.Id,
-		User:          author,
-		PlayUrl:       dbVideo.PlayUrl,
-		CoverUrl:      dbVideo.CoverUrl,
-		FavoriteCount: int64(dbVideo.FavoriteCount),
-		CommentCount:  int64(dbVideo.CommentCount),
-		IsFavorite:    true,
-		Title:         dbVideo.Title,
-	}
-}
