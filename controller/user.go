@@ -24,7 +24,12 @@ type RegisterRequest struct {
 
 type LoginResponse struct {
 	Response
-	service.Credential
+	*service.Credential
+}
+
+type InfoResponse struct {
+	Response
+	*service.UserInfo
 }
 
 func Register(c *gin.Context) {
@@ -42,7 +47,10 @@ func Register(c *gin.Context) {
 			model.ErrorResponse(model.ErrorCode, err.Error()))
 		return
 	}
-	c.JSON(http.StatusOK, credential)
+	c.JSON(http.StatusOK, LoginResponse{
+		Response:   Success(),
+		Credential: credential,
+	})
 }
 
 func Login(c *gin.Context) {
@@ -61,12 +69,24 @@ func Login(c *gin.Context) {
 		return
 	}
 	// 3. 返回结果
-	c.JSON(http.StatusOK, credential)
+	c.JSON(http.StatusOK, LoginResponse{
+		Response:   Success(),
+		Credential: credential,
+	})
 }
 
 func UserInfo(c *gin.Context) {
 	// 从context中获取userId并转为int64类型
 	userId := c.GetInt64("userId")
 	// todo 是否需要加入检验userId的代码
-	c.JSON(http.StatusOK, userService.GetUserInfo(userId))
+	userInfo, err := userService.QuerySelfInfo(userId)
+	if err != nil {
+		c.JSON(http.StatusBadRequest,
+			model.ErrorResponse(model.ErrorCode, err.Error()))
+		return
+	}
+	c.JSON(http.StatusOK, InfoResponse{
+		Response: Success(),
+		UserInfo: userInfo,
+	})
 }
