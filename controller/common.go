@@ -38,9 +38,12 @@ type UserResponse struct {
 
 type FriendUser struct {
 	User
-	Avatar  string `json:"avatar"`            //头像
-	Message string `json:"message,omitempty"` //聊天记录
-	MsgType int64  `json:"msg_type"`          //消息类型
+	FollowCount   int64  `json:"follow_count,omitempty"`
+	FollowerCount int64  `json:"follower_count,omitempty"`
+	IsFollow      bool   `json:"is_follow,omitempty"`
+	Avatar        string `json:"avatar"`            //头像
+	Message       string `json:"message,omitempty"` //聊天记录
+	MsgType       int64  `json:"msg_type"`          //消息类型
 }
 
 type CommentResponse struct {

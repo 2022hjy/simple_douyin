@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"simple_douyin/service"
+	"simple_douyin/util"
 	"strconv"
 )
 
@@ -98,20 +99,27 @@ func CommentAction(c *gin.Context) {
 }
 
 func CommentList(c *gin.Context) {
-	userId := c.GetInt64("userId")
 	videoId, err := strconv.ParseInt(c.Query("video_id"), 10, 64)
 	if err != nil {
 		respondWithError(c, -1, "comment videoId json invalid: "+err.Error())
 		return
 	}
-	commentList, err := commentService.GetCommentList(videoId, userId)
+	commentList, err := commentService.GetCommentList(videoId)
+	var commentResponseList []CommentResponse
+	for i, comment := range commentList {
+		userId := comment.UserId
+		//todo 获得评论者的信息，进行转化 User := dao.GetUserById(userId)
+		commentResponseList[i] = util.ConvertDBCommentToResponse(comment, UserResponse)
+		commentResponseList = append(commentResponseList, commentResponseList[i])
+	}
+
 	if err != nil {
 		respondWithError(c, -1, err.Error())
 		return
 	}
 	c.JSON(http.StatusOK, CommentListResponse{
 		Response:    Response{StatusCode: 0},
-		CommentList: commentList,
+		CommentList: commentResponseList,
 	})
 	return
 }

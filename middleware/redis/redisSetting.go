@@ -36,7 +36,7 @@ type RedisClients struct {
 	//F : favorite
 	UserId_FVideoIdR *redis.Client
 	VideoId_VideoR   *redis.Client
-	VUid             *redis.Client
+	UserId_UserR     *redis.Client
 	UserFollowers    *redis.Client
 	UserFollowings   *redis.Client
 	UserFriends      *redis.Client
@@ -75,7 +75,7 @@ func InitRedis() {
 			Password: ProRedisPwd,
 			DB:       4,
 		}),
-		VUid: redis.NewClient(&redis.Options{
+		UserId_UserR: redis.NewClient(&redis.Options{
 			Addr:     ProdRedisAddr,
 			Password: ProRedisPwd,
 			DB:       5,
