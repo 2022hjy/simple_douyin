@@ -256,26 +256,83 @@ func GetFriendsByRedis(userId int64) ([]int64, int64, error) {
 }
 
 // GetFriends 获取用户好友列表（附带与其最新聊天记录）
-//func (followService *FollowServiceImp) GetFriends(userId int64) ([]FriendUser, error) {
-//	// 调用集成redis的好友获取接口获取好友id和好友数量
-//	userFriendId, userFriendCnt, err := GetFriendsByRedis(userId)
-//
-//	if nil != err {
-//		log.Println(err.Error())
-//	}
-//
-//	// 使用好友数量创建空好友结构体数组
-//	userFriends := make([]FriendUser, userFriendCnt)
-//
-//	// 调用好友构建函数构建好友数组
-//	err1 := followService.BuildFriendUser(userId, userFriends, userFriendId)
-//
-//	if err1 != nil {
-//		log.Println(err1.Error())
-//	}
-//
-//	return userFriends, nil
-//}
+func (followService *FollowServiceImp) GetFriends(userId int64) ([]controller.FriendUser, error) {
+	// 调用集成redis的好友获取接口获取好友id和好友数量
+	userFriendId, userFriendCnt, err := GetFriendsByRedis(userId)
+
+	if nil != err {
+		log.Println(err.Error())
+	}
+
+	// 使用好友数量创建空好友结构体数组
+	userFriends := make([]controller.FriendUser, userFriendCnt)
+
+	// 调用好友构建函数构建好友数组
+	err1 := followService.BuildFriendUser(userId, userFriends, userFriendId)
+
+	if err1 != nil {
+		log.Println(err1.Error())
+	}
+
+	return userFriends, nil
+}
+
+// BuildFriendUser 根据传入的id列表和空frienduser数组，构建业务所需frienduser数组并返回
+func (followService *FollowServiceImp) BuildFriendUser(userId int64, friendUsers []controller.FriendUser, ids []int64) error {
+
+	msi := messageServiceImpl
+	followDao := dao.NewFollowDaoInstance()
+
+	// 遍历传入的好友id，组装好友user结构体
+	for i := 0; i < len(ids); i++ {
+
+		// 好友id赋值
+		friendUsers[i].Id = ids[i]
+
+		// 好友name赋值
+		var err1 error
+		friendUsers[i].Name, err1 = followDao.GetUserName(ids[i])
+		if nil != err1 {
+			log.Println(err1)
+			return err1
+		}
+
+		// 好友关注数赋值
+		var err2 error
+		friendUsers[i].FollowCount, err2 = followService.GetFollowingCnt(ids[i])
+		if nil != err2 {
+			log.Println(err2.Error())
+			return err2
+		}
+
+		// 好友粉丝数赋值
+		var err3 error
+		friendUsers[i].FollowerCount, err3 = followService.GetFollowerCnt(ids[i])
+		if nil != err3 {
+			log.Println(err3.Error())
+			return err3
+		}
+
+		// 好友其他属性赋值
+		friendUsers[i].IsFollow = true
+		//friendUsers[i].Avatar = config.CUSTOM_DOMAIN + config.OSS_USER_AVATAR_DIR
+
+		// 调用message模块获取聊天记录
+		messageInfo, err := msi.LatestMessage(userId, ids[i])
+
+		//在根据id获取不到最新一条消息时，需要返回对应的id
+		if err != nil {
+
+			continue
+		}
+
+		friendUsers[i].Message = messageInfo.Message
+		friendUsers[i].MsgType = messageInfo.MsgType
+	}
+
+	// 将空数组内属性构建完成即可，不用特意返回数组
+	return nil
+}
 
 /*
 	将返回关注用户、返回粉丝用户、返回好友用户中的构建用户的逻辑独立出来

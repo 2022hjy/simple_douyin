@@ -32,6 +32,13 @@ type UserResponse struct {
 	WorkCount       int64  `json:"work_count"`       // 作品数
 }
 
+type FriendUser struct {
+	User
+	Avatar  string `json:"avatar"`            //头像
+	Message string `json:"message,omitempty"` //聊天记录
+	MsgType int64  `json:"msg_type"`          //消息类型
+}
+
 type CommentResponse struct {
 	Id         int64        `json:"id,omitempty"`
 	User       UserResponse `json:"user"`
