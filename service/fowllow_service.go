@@ -1,6 +1,8 @@
 package service
 
-import "simple_douyin/model"
+import (
+	"simple_douyin/controller"
+)
 
 type FollowService interface {
 
@@ -12,11 +14,11 @@ type FollowService interface {
 	// CancelFollowAction 当前用户取消对目标用户的关注
 	CancelFollowAction(userId int64, targetId int64) (bool, error)
 	// GetFollowings 获取当前用户的关注列表
-	GetFollowings(userId int64) ([]model.User, error)
+	GetFollowings(userId int64) ([]controller.FriendUser, error)
 	// GetFollowers 获取当前用户的粉丝列表
-	GetFollowers(userId int64) ([]model.User, error)
+	GetFollowers(userId int64) ([]controller.FriendUser, error)
 	// GetFriends 获取好友
-	GetFriends(userId int64) ([]model.FriendUser, error)
+	GetFriends(userId int64) ([]controller.FriendUser, error)
 
 	/*
 		模块对外提供的服务接口
