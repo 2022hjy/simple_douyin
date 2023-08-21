@@ -30,14 +30,15 @@ var MRLock = &sync.Mutex{}
 // 命名规则：[Key]_[Val]R
 type RedisClients struct {
 	Test               *redis.Client
-	Video_CommentIdR   *redis.Client
+	VideoId_CommentIdR *redis.Client
 	CommentId_CommentR *redis.Client
-	UserId_FVideoIdR   *redis.Client
-	VideoId_VideoR     *redis.Client
-	VUid               *redis.Client
-	UserFollowers      *redis.Client
-	UserFollowings     *redis.Client
-	UserFriends        *redis.Client
+	//F : favorite
+	UserId_FVideoIdR *redis.Client
+	VideoId_VideoR   *redis.Client
+	VUid             *redis.Client
+	UserFollowers    *redis.Client
+	UserFollowings   *redis.Client
+	UserFriends      *redis.Client
 }
 
 const (
@@ -53,7 +54,7 @@ func InitRedis() {
 			Password: ProRedisPwd,
 			DB:       0,
 		}),
-		Video_CommentIdR: redis.NewClient(&redis.Options{
+		VideoId_CommentIdR: redis.NewClient(&redis.Options{
 			Addr:     ProdRedisAddr,
 			Password: ProRedisPwd,
 			DB:       1,
@@ -174,7 +175,7 @@ func GetKeysAndUpdateExpiration(client *redis.Client, pattern string) (interface
 	}
 
 	results := make(map[string]string)
-	MRLock.Lock()
+	//MRLock.Lock()
 	for i, key := range keys {
 		val, ok := values[i].(string)
 		if !ok {
@@ -191,8 +192,9 @@ func GetKeysAndUpdateExpiration(client *redis.Client, pattern string) (interface
 			client.Expire(Ctx, key, 2*time.Minute)
 		}
 	}
-	MRLock.Unlock()
+	//MRLock.Unlock()
 
+	// 如果只有一个键值对，直接返回键值对
 	if len(results) == 1 {
 		for _, value := range results {
 			return value, nil
@@ -206,14 +208,15 @@ func DeleteKey(client *redis.Client, key string) error {
 	if client == nil {
 		return errors.New("client is nil")
 	}
-	MRLock.Lock()
+	//MRLock.Lock()
 	delete(keyAccessMap, key)
-	MRLock.Unlock()
+	//MRLock.Unlock()
 	return client.Del(Ctx, key).Err()
 }
 
 // IsKeyExist 判断 Redis 中是否存在某个键
-// 返回值：bool，error。如果存在，返回 true，nil；如果不存在，返回 false，nil；如果出错，返回 false，error
+// 返回值：bool，error。如果存在，返回 true，nil；
+// 如果不存在，返回 false，nil；如果出错，返回 false，error
 func IsKeyExist(client *redis.Client, key string) (bool, error) {
 	if client == nil {
 		return false, errors.New("client is nil")

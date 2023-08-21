@@ -7,6 +7,7 @@ import (
 	"github.com/go-redsync/redsync/v4/redis/goredis/v9"
 	"gorm.io/gorm"
 	"log"
+	"simple_douyin/config"
 	"simple_douyin/dao"
 	"simple_douyin/middleware/database"
 	"simple_douyin/middleware/redis"
@@ -130,7 +131,7 @@ func (c *CommentService) GetCommentList(videoId int64) ([]dao.CommentDao, error)
 
 func (c *CommentService) getCommentListFromRedis(videoId int64) ([]dao.CommentDao, error) {
 	var commentList []dao.CommentDao
-	VidCidR := redis.Clients.Video_CommentIdR
+	VidCidR := redis.Clients.VideoId_CommentIdR
 	videoIdToStr := strconv.FormatInt(videoId, 10)
 	commentIdListInterface, err := redis.GetKeysAndUpdateExpiration(VidCidR, videoIdToStr)
 	if err != nil {
@@ -186,13 +187,15 @@ func updateCommentRedis(videoId int64, commentId int64, comment dao.CommentDao) 
 	//2. commentId -> comment（序列化成 json）
 
 	//发现之所以一直无法正常导入的原因是出现了包的名称的冲突的问题，导入了 go-redis 包，和 middleware 内部的 redis 包起了冲突，不知道具体导入哪一个
-	VCidClient := redis.Clients.Video_CommentIdR
+	VCidClient := redis.Clients.VideoId_CommentIdR
 	if VCidClient == nil {
 		log.Fatalf("redis client is nil")
 		return
 	}
 	vId := strconv.FormatInt(videoId, 10)
 	//1.key == videoId, value == commentId
+	key := config.VideoId_CommentId_KEY
+
 	err := redis.SetValueWithRandomExp(VCidClient, vId, commentId)
 	if err != nil {
 		log.Fatalf("set redis failed, err:%v\n", err)
@@ -221,7 +224,7 @@ func updateCommentRedis(videoId int64, commentId int64, comment dao.CommentDao) 
 /*
 func deleteCommentRedis(videoId int64, commentId int64, comment dao.CommentDao) {
 	//1.删除 videoId -> commentId
-	VCidClient := redis.Clients.Video_CommentIdR
+	VCidClient := redis.Clients.VideoId_CommentIdR
 	if VCidClient == nil {
 		log.Fatalf("redis client is nil")
 		return
@@ -262,7 +265,7 @@ func deleteCommentRedis(videoId int64, commentId int64, comment dao.CommentDao) 
 // 牛刀小试，尝试使用分布式锁，防止并发删除
 func deleteCommentRedis(videoId int64, commentId int64) error {
 	//1.删除 videoId -> commentId
-	VCidClient := redis.Clients.Video_CommentIdR
+	VCidClient := redis.Clients.VideoId_CommentIdR
 	if VCidClient == nil {
 		log.Fatalf("redis client is nil")
 		return errors.New("redis client is nil")
