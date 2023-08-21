@@ -7,6 +7,7 @@ import (
 	"github.com/go-redsync/redsync/v4/redis/goredis/v9"
 	"gorm.io/gorm"
 	"log"
+	"simple_douyin/config"
 	"simple_douyin/dao"
 	"simple_douyin/middleware/database"
 	"simple_douyin/middleware/redis"
@@ -193,6 +194,8 @@ func updateCommentRedis(videoId int64, commentId int64, comment dao.CommentDao) 
 	}
 	vId := strconv.FormatInt(videoId, 10)
 	//1.key == videoId, value == commentId
+	key := config.VideoId_CommentId_KEY
+
 	err := redis.SetValueWithRandomExp(VCidClient, vId, commentId)
 	if err != nil {
 		log.Fatalf("set redis failed, err:%v\n", err)

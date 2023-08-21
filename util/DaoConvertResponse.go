@@ -40,8 +40,8 @@ func ConvertDBVideoToResponse(dbVideo dao.Video, User controller.UserResponse) c
 		CoverUrl:      dbVideo.CoverUrl,
 		FavoriteCount: int64(dbVideo.FavoriteCount),
 		CommentCount:  int64(dbVideo.CommentCount),
-		IsFavorite:    isFavorite,    // 修改了这里
-		Title:         dbVideo.Title, // 修改了这里
+		IsFavorite:    isFavorite,
+		Title:         dbVideo.Title,
 	}
 }
 
