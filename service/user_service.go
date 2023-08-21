@@ -7,7 +7,6 @@ import (
 	redisv9 "github.com/redis/go-redis/v9"
 	"simple_douyin/controller"
 	"simple_douyin/dao"
-	"simple_douyin/model"
 	"simple_douyin/util"
 )
 
@@ -100,19 +99,25 @@ type UserInfo struct {
 	FavoriteCount  int64 `json:"favorite_count,omitempty"`
 }
 
-func QueryUserInfo(userId int64) (*UserInfo, error) {
-	return NewQueryUserInfoFlow(userId).Do()
+func (*UserService) QueryUserInfo(userId int64, tokenUserId int64) (*UserInfo, error) {
+	return NewQueryUserInfoFlow(userId, tokenUserId).Do()
 }
 
-func NewQueryUserInfoFlow(userId int64) *QueryUserInfoFlow {
+func (*UserService) QuerySelfInfo(userId int64) (*UserInfo, error) {
+	return NewQueryUserInfoFlow(userId, userId).Do()
+}
+
+func NewQueryUserInfoFlow(userId int64, tokenUserId int64) *QueryUserInfoFlow {
 	return &QueryUserInfoFlow{
-		userId: userId,
+		userId:      userId,
+		tokenUserId: tokenUserId,
 	}
 }
 
 type QueryUserInfoFlow struct {
-	userId   int64
-	userInfo *UserInfo
+	userId      int64
+	tokenUserId int64
+	userInfo    *UserInfo
 
 	user           *dao.User
 	followCount    int64
@@ -138,43 +143,43 @@ func (f *QueryUserInfoFlow) Do() (*UserInfo, error) {
 func (f *QueryUserInfoFlow) prepareInfo() error {
 	var wg sync.WaitGroup
 	wg.Add(3)
-	errChan := make(chan error, 7)
+	errChan := make(chan error, 2)
 	go func() {
 		defer wg.Done()
 		// 1. 先从redis中获取用户信息
+
 		// 2. 如果redis中没有，则从数据库中获取
 		user, err := dao.NewUserDaoInstance().GetUserById(f.userId)
 		if err != nil {
 			errChan <- err
-			return
 		}
+		// 3. 将用户信息写入到redis中
+
 		f.user = user
 	}()
 	go func() {
 		defer wg.Done()
 		// 获取用户的关注数、粉丝数、是否关注
-
-	}()
-	go func() {
-		defer wg.Done()
-		f.isFollow = false
+		followService := NewFSIInstance()
+		followCount, err := followService.GetFollowerCnt(f.userId)
+		if err == nil {
+			f.followerCount = followCount
+		}
+		followingCount, err := followService.GetFollowingCnt(f.userId)
+		if err == nil {
+			f.followCount = followingCount
+		}
+		isFollow, err := followService.CheckIsFollowing(f.userId, f.tokenUserId)
+		if err != nil {
+			errChan <- err
+		}
+		f.isFollow = isFollow
 	}()
 	go func() {
 		defer wg.Done()
 		f.totalFavorited = 0
-	}()
-	go func() {
-		defer wg.Done()
-		videoCnt, err := dao.GetVideoCnt(f.userId)
-		if err != nil {
-			errChan <- err
-			return
-		}
-		f.workCount = videoCnt
-	}()
-	go func() {
-		defer wg.Done()
 		f.favoriteCount = 0
+		f.workCount = 0
 	}()
 	wg.Wait()
 	select {
@@ -186,7 +191,7 @@ func (f *QueryUserInfoFlow) prepareInfo() error {
 }
 
 func (f *QueryUserInfoFlow) packageInfo() error {
-	f.userInfo = &model.UserInfo{
+	f.userInfo = &UserInfo{
 		User:           f.user,
 		FollowerCount:  f.followerCount,
 		FollowCount:    f.followCount,

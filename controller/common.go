@@ -5,6 +5,13 @@ type Response struct {
 	StatusMsg  string `json:"status_msg,omitempty"`
 }
 
+func Success() Response {
+	return Response{
+		StatusCode: 0,
+		StatusMsg:  "success",
+	}
+}
+
 // VideoResponse data 内部返回给前端的结构体
 type VideoResponse struct {
 	Id            int64        `json:"id,omitempty"`

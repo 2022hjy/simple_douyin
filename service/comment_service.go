@@ -192,9 +192,8 @@ func updateCommentRedis(videoId int64, commentId int64, comment dao.CommentDao) 
 		log.Fatalf("redis client is nil")
 		return
 	}
-	vId := strconv.FormatInt(videoId, 10)
+	vId := config.VideoId_CommentId_KEY_PREFIX + strconv.FormatInt(videoId, 10)
 	//1.key == videoId, value == commentId
-	key := config.VideoId_CommentId_KEY
 
 	err := redis.SetValueWithRandomExp(VCidClient, vId, commentId)
 	if err != nil {
@@ -208,7 +207,8 @@ func updateCommentRedis(videoId int64, commentId int64, comment dao.CommentDao) 
 		log.Fatalf("redis client is nil")
 		return
 	}
-	cId := strconv.FormatInt(commentId, 10)
+	cId := config.CommentId_Comment_KEY_PREFIX + strconv.FormatInt(commentId, 10)
+
 	comment_json, serializationErr := json.Marshal(comment)
 	if serializationErr != nil {
 		log.Fatalf("jsonfiy comment failed, err:%v\n", comment_json)
@@ -270,8 +270,8 @@ func deleteCommentRedis(videoId int64, commentId int64) error {
 		log.Fatalf("redis client is nil")
 		return errors.New("redis client is nil")
 	}
-	vId := strconv.FormatInt(videoId, 10)
-	cId := strconv.FormatInt(commentId, 10)
+	vId := config.VideoId_CommentId_KEY_PREFIX + strconv.FormatInt(videoId, 10)
+	cId := config.CommentId_Comment_KEY_PREFIX + strconv.FormatInt(commentId, 10)
 
 	// 创建一个红色同步互斥锁
 	pool := goredis.NewPool(VCidClient) // or, pool := goredis.NewPool(&redis.Pool{…})
