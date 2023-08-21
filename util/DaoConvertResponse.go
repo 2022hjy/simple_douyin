@@ -6,6 +6,13 @@ import (
 	"time"
 )
 
+func ()  {
+	
+}
+
+
+
+
 // ConvertDBUserToResponse 将数据库中的用户信息转换为响应的用户信息
 // Finish this function
 func ConvertDBUserToResponse(dbUser dao.UserDAO, FavoriteCount int64, FollowCount int64, FollowerCount int64, IsFollow bool, TotalFavorited string, WorkCount int64) controller.UserResponse {
