@@ -13,7 +13,7 @@ type Video struct {
 	Title         string    `json:"title"`          // 视频标题
 	PlayUrl       string    `json:"play_url"`       // 视频播放地址
 	CoverUrl      string    `json:"cover_url"`      // 视频封面地址
-	IsFavorite    bool      `json:"is_favorite"`    // 是否被like
+	IsFavorite    int       `json:"is_favorite"`    // 是否被like
 	FavoriteCount int64     `json:"favorite_count"` // like数
 	CommentCount  int64     `json:"comment_count"`  // 评论数
 	CreatedAt     time.Time // 视频创建时间

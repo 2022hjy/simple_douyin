@@ -11,12 +11,12 @@ import (
 
 // 路由键常量
 const (
-	COMMENT_ADD    = "comment_add"
-	COMMENT_REMOVE = "comment_remove"
-	LIKE_ADD       = "like_add"
-	LIKE_REMOVE    = "like_remove"
-	FOLLOW_ADD     = "follow_add"
-	FOLLOW_REMOVE  = "follow_remove"
+	COMMENT_ADD     = "comment_add"
+	COMMENT_REMOVE  = "comment_remove"
+	FAVORITE_ADD    = "favorite_add"
+	FAVORITE_REMOVE = "favorite_remove"
+	FOLLOW_ADD      = "follow_add"
+	FOLLOW_REMOVE   = "follow_remove"
 )
 
 var (
@@ -103,7 +103,7 @@ func InitMq() {
 	}
 
 	// 绑定LikeMQ队列到交换器，并设置路由键
-	likeRoutingKeys := []string{LIKE_ADD, LIKE_REMOVE}
+	likeRoutingKeys := []string{FAVORITE_ADD, FAVORITE_REMOVE}
 	for _, key := range likeRoutingKeys {
 		err = ch.QueueBind(
 			LikeMQ.Name,  // queue name
@@ -144,7 +144,7 @@ func InitMq() {
 
 // SendMessage 用于发送消息到交换器, routingKey为路由键，body为消息内容, 交换器名为events
 // 交换机将会根据路由键将消息发送到对应的队列中，无须指定队列名
-func SendMessage(routingKey, body string) {
+func SendMessage(routingKey string, obj interface{}) {
 	err := ch.Publish(
 		exchangeName,
 		routingKey,
@@ -152,7 +152,7 @@ func SendMessage(routingKey, body string) {
 		false,
 		amqp.Publishing{
 			ContentType: "text/plain",
-			Body:        []byte(body),
+			Body:        []byte(obj),
 		})
 	failOnError(err, "Failed to publish a message")
 }
