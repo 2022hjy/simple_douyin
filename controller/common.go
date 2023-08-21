@@ -12,6 +12,13 @@ func Success() Response {
 	}
 }
 
+func Error(code int32, msg string) Response {
+	return Response{
+		StatusCode: code,
+		StatusMsg:  msg,
+	}
+}
+
 // VideoResponse data 内部返回给前端的结构体
 type VideoResponse struct {
 	Id            int64        `json:"id,omitempty"`
