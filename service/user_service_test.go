@@ -34,7 +34,9 @@ func TestRegister(t *testing.T) {
 }
 
 func TestUserInfo(t *testing.T) {
-	res := userService.UserInfo(7)
+	database.Init()
+	service := NewUserServiceInstance()
+	res := service.UserInfo(7)
 	resJson, _ := json.Marshal(res)
 	t.Log(string(resJson))
 }

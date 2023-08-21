@@ -5,7 +5,6 @@ import (
 
 	"github.com/RaymondCode/simple-demo/controller"
 	"github.com/gin-gonic/gin"
-	"simple_douyin/config"
 	"simple_douyin/util"
 )
 
@@ -18,11 +17,11 @@ func Auth() gin.HandlerFunc {
 		if err != nil {
 			c.Abort()
 			c.JSON(http.StatusUnauthorized, controller.Response{
-				StatusCode: config.UNAUTHORIZED,
+				StatusCode: http.StatusUnauthorized,
 				StatusMsg:  "Unauthorized",
 			})
 		} else {
-			c.Set("userId", claims.ID)
+			c.Set("token_user_id", claims.ID)
 			c.Next()
 		}
 	}
@@ -47,7 +46,7 @@ func AuthWithoutLogin() gin.HandlerFunc {
 		} else {
 			userId = claims.ID
 		}
-		c.Set("userId", userId)
+		c.Set("token_user_id", userId)
 		c.Next()
 	}
 }
@@ -60,11 +59,11 @@ func AuthFromBody() gin.HandlerFunc {
 		if err != nil {
 			c.Abort()
 			c.JSON(http.StatusUnauthorized, controller.Response{
-				StatusCode: config.UNAUTHORIZED,
+				StatusCode: http.StatusUnauthorized,
 				StatusMsg:  "Unauthorized",
 			})
 		} else {
-			c.Set("userId", claims.ID)
+			c.Set("token_user_id", claims.ID)
 			c.Next()
 		}
 	}

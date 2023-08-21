@@ -3,12 +3,13 @@ package redis
 import (
 	"context"
 	"errors"
-	"github.com/redis/go-redis/v9"
 	"log"
 	"math/rand"
-	"simple_douyin/config"
 	"sync"
 	"time"
+
+	"github.com/redis/go-redis/v9"
+	"simple_douyin/config"
 )
 
 // Ctx Path: middleware/redis/redis.go
@@ -117,6 +118,52 @@ func SetValueWithRandomExp(client *redis.Client, key string, value interface{}) 
 		log.Fatalf("redis set error: %v\n", SetErr)
 	}
 	return SetErr
+}
+
+// SetHashWithExpiration 设置 Redis 哈希表，并设置过期时间
+func SetHashWithExpiration(client *redis.Client, key string, data map[string]interface{}, exp time.Duration) error {
+	SetErr := SetHash(client, key, data)
+	if SetErr != nil {
+		return SetErr
+	}
+	return SetExpiration(client, key, exp)
+}
+
+// SetHash 设置 Redis 哈希表
+func SetHash(client *redis.Client, key string, data map[string]interface{}) error {
+	if client == nil {
+		return errors.New("client is nil")
+	}
+	SetErr := client.HMSet(Ctx, key, data).Err()
+	if SetErr != nil {
+		log.Fatalf("redis set error: %v\n", SetErr)
+	}
+	return SetErr
+}
+
+// SetExpiration 设置 Redis 键值对的过期时间
+func SetExpiration(client *redis.Client, key string, exp time.Duration) error {
+	if client == nil {
+		return errors.New("client is nil")
+	}
+	ExpErr := client.Expire(Ctx, key, exp).Err()
+	if ExpErr != nil {
+		log.Fatalf("redis set error: %v\n", ExpErr)
+	}
+	return ExpErr
+}
+
+// GetHash 获取 Redis Hash结构
+func GetHash(client *redis.Client, key string) (*map[string]string, error) {
+	if client == nil {
+		return nil, errors.New("client is nil")
+	}
+	result, err := client.HGetAll(Ctx, key).Result()
+	if err != nil {
+		log.Fatalf("redis set error: %v\n", err)
+		return nil, err
+	}
+	return &result, nil
 }
 
 /*
