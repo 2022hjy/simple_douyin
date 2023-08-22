@@ -3,13 +3,13 @@ package service
 import (
 	"encoding/json"
 	"errors"
-	"simple_douyin/config"
-	"simple_douyin/middleware/redis"
 	"strconv"
 	"sync"
 
+	"simple_douyin/config"
+	"simple_douyin/middleware/redis"
+
 	redisv9 "github.com/redis/go-redis/v9"
-	"simple_douyin/controller"
 	"simple_douyin/dao"
 	"simple_douyin/util"
 )
@@ -34,17 +34,22 @@ func NewUserServiceInstance() *UserService {
 	return userService
 }
 
+type LoginInfo struct {
+	UserName string
+	Password string
+}
+
 type Credential struct {
 	UserId int64  `json:"user_id"`
 	Token  string `json:"token"`
 }
 
-func (u *UserService) Login(request controller.LoginRequest) (*Credential, error) {
-	user, err := u.userDao.GetUserByName(request.UserName)
+func (u *UserService) Login(info LoginInfo) (*Credential, error) {
+	user, err := u.userDao.GetUserByName(info.UserName)
 	if err != nil {
 		return nil, errors.New("user not exists")
 	}
-	success := util.ValidatePassword(user.Password, request.Password)
+	success := util.ValidatePassword(user.Password, info.Password)
 	if !success {
 		return nil, errors.New("password is wrong")
 	}
@@ -58,20 +63,20 @@ func (u *UserService) Login(request controller.LoginRequest) (*Credential, error
 	}, nil
 }
 
-func (u *UserService) Register(request controller.RegisterRequest) (*Credential, error) {
+func (u *UserService) Register(info LoginInfo) (*Credential, error) {
 	// 1. 从数据库中查询用户是否存在
-	user, err := u.userDao.GetUserByName(request.UserName)
+	user, err := u.userDao.GetUserByName(info.UserName)
 	if err == nil {
 		return nil, errors.New("user already exists")
 	}
 	// 2. 对用户输入的密码进行加密
-	password, err := util.EncryptPassword(request.Password)
+	password, err := util.EncryptPassword(info.Password)
 	if err != nil {
 		return nil, errors.New("encrypt password failed")
 	}
 	// 3. 将用户信息插入到数据库中
 	user = &dao.User{
-		Username:        request.UserName,
+		Username:        info.UserName,
 		Password:        password,
 		Avatar:          "",
 		BackgroundImage: "",
@@ -151,7 +156,11 @@ func (f *QueryUserInfoFlow) prepareInfo() error {
 	go func() {
 		defer wg.Done()
 		// 1. 先从redis中获取用户信息
-
+		//user, err := getUserFromRedisByUserId(f.userId)
+		//if err == nil {
+		//	f.user = user
+		//	return
+		//}
 		// 2. 如果redis中没有，则从数据库中获取
 		user, err := dao.NewUserDaoInstance().GetUserById(f.userId)
 		if err != nil {

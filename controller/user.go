@@ -11,16 +11,6 @@ var (
 	userService = service.NewUserServiceInstance()
 )
 
-type LoginRequest struct {
-	UserName string
-	Password string
-}
-
-type RegisterRequest struct {
-	UserName string
-	Password string
-}
-
 type LoginResponse struct {
 	Response
 	*service.Credential
@@ -32,15 +22,15 @@ type InfoResponse struct {
 }
 
 func Register(c *gin.Context) {
-	var registerRequest RegisterRequest
+	var loginInfo service.LoginInfo
 
 	// 1. 检验参数，如果不符合要求，返回错误信息
-	if err := c.ShouldBindJSON(&registerRequest); err != nil {
+	if err := c.ShouldBindJSON(&loginInfo); err != nil {
 		c.JSON(http.StatusBadRequest,
 			Error(http.StatusBadRequest, "Invalid parameter"))
 		return
 	}
-	credential, err := userService.Register(registerRequest)
+	credential, err := userService.Register(loginInfo)
 	if err != nil {
 		c.JSON(http.StatusBadRequest,
 			Error(http.StatusBadRequest, err.Error()))
@@ -53,15 +43,15 @@ func Register(c *gin.Context) {
 }
 
 func Login(c *gin.Context) {
-	var loginRequest LoginRequest
+	var loginInfo service.LoginInfo
 	// 1. 检验参数，如果不符合要求，返回错误信息
-	if err := c.ShouldBindJSON(&loginRequest); err != nil {
+	if err := c.ShouldBindJSON(&loginInfo); err != nil {
 		c.JSON(http.StatusBadRequest,
 			Error(http.StatusBadRequest, "Invalid parameter"))
 		return
 	}
 	// 2. 调用service层的Login方法，返回结果
-	credential, err := userService.Login(loginRequest)
+	credential, err := userService.Login(loginInfo)
 	if err != nil {
 		c.JSON(http.StatusBadRequest,
 			Error(http.StatusBadRequest, err.Error()))
