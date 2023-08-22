@@ -112,3 +112,14 @@ func UploadVideo(videoName string, authorId int64, videoTitle string) error {
 	video.UpdatedAt = time.Now()
 	return SaveVideo(video)
 }
+
+// GetVideoIdListByUserId 根据用户 Id 获取该用户已发布的所有视频
+func GetVideoIdListByUserId(userId int64) ([]int64, error) {
+	var videoIdList []int64
+	result := database.Db.Model(Video{}).Where("user_info_id = ?", userId).Pluck("id", &videoIdList)
+	if result.Error != nil {
+		log.Println("获取用户已发布视频失败！", result.Error)
+		return nil, result.Error
+	}
+	return videoIdList, nil
+}

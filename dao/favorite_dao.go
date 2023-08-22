@@ -3,6 +3,9 @@ package dao
 import (
 	"errors"
 	"log"
+	"simple_douyin/config"
+	"simple_douyin/middleware/redis"
+	"strconv"
 	"time"
 )
 
@@ -85,18 +88,18 @@ const (
 	ISNOTFAVORITE = 0
 )
 
-func GetFavoriteListByUserId(userId int64) ([]int64, int64, error) {
-	var FavoritedList []int64
+func GetFavoriteIdListByUserId(userId int64) ([]int64, int64, error) {
+	var FavoriteIdList []int64
 	result := Db.Model(&FavoriteDao{}).
 		Where("user_id=? and is_favorite = ?", userId, ISFAVORITE).
 		Order("created_at desc").
-		Pluck("video_id", &FavoritedList)
+		Pluck("video_id", &FavoriteIdList)
 	favoriteCnt := result.RowsAffected
 	if result.Error != nil {
 		log.Println("FavoritedVideoIdList:", result.Error.Error())
 		return nil, -1, result.Error
 	}
-	return FavoritedList, favoriteCnt, nil
+	return FavoriteIdList, favoriteCnt, nil
 }
 
 func VideoFavoritedCount(videoId int64) (int64, error) {
@@ -189,23 +192,42 @@ func IsFavoritedByUser(userId int64, videoId int64) (bool, error) {
 	return true, nil
 }
 
-func GetUserVideoFavoritedByOther(userId int64) ([]int64, error) {
-	var favoritedList []int64
-	result := Db.Model(FavoriteDao{}).
-		Joins("join video on favorite.video_id = video.id and author_id = ? and is_favorite = ?", userId, 1).
-		Distinct("video_id").
-		Pluck("video_id", &favoritedList)
-	if result.Error != nil {
-		return nil, result.Error
+func GettotalFavorited(userId int64) (int, error) {
+	UIdFVIdR := redis.Clients.UserId_FavoriteVideoIdR
+	key := config.UserId_FVideoId_KEY_PREFIX + strconv.FormatInt(userId, 10)
+
+	// 尝试从 Redis 中获取数据
+	count, err := redis.CountElements(UIdFVIdR, key)
+	if err != nil || count == 0 { // 如果 Redis 返回错误或计数为0
+		// 从数据库中获取点赞的视频数量
+		_, countFromDb, errDb := GetFavoriteIdListByUserId(userId)
+		if errDb != nil {
+			log.Println("从数据库获取点赞的视频数量失败：", errDb)
+			return 0, errDb
+		}
+		// 将数据重新设置到 Redis
+		redis.SetValueWithRandomExp(UIdFVIdR, key, countFromDb)
+		return int(countFromDb), nil
 	}
-	return favoritedList, nil
+	return count, nil
 }
 
-func GetUserVideoFavoritedTotalCount(userId int64) (int64, error) {
-	var totalFavoritedCount int64
-	result := Db.Model(FavoriteDao{}).Joins("join video on favorite.video_id = video.id and author_id = ? and is_favorite = ?", userId, 1).Count(&totalFavoritedCount)
-	if result.Error != nil {
-		return 0, result.Error
+func GetfavoriteCount(videoId int64) (int, error) {
+	UIdFVIdR := redis.Clients.UserId_FavoriteVideoIdR
+	key := config.VideoId_FavoritebUserId_KEY_PREFIX + strconv.FormatInt(videoId, 10)
+
+	// 尝试从 Redis 中获取数据
+	count, err := redis.CountElements(UIdFVIdR, key)
+	if err != nil || count == 0 { // 如果 Redis 返回错误或计数为0
+		// 从数据库中获取点赞的用户数量
+		countFromDb, errDb := VideoFavoritedCount(videoId)
+		if errDb != nil {
+			log.Println("从数据库获取点赞的用户数量失败：", errDb)
+			return 0, errDb
+		}
+		// 将数据重新设置到 Redis
+		redis.SetValueWithRandomExp(UIdFVIdR, key, countFromDb)
+		return int(countFromDb), nil
 	}
-	return totalFavoritedCount, nil
+	return count, nil
 }

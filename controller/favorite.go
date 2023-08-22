@@ -56,7 +56,7 @@ func FavoriteList(c *gin.Context, service service.FavoriteService) {
 		return
 	}
 
-	videoList, err := service.GetLikesList(userId)
+	videoList, err := service.GetFavoriteList(userId)
 	if err != nil {
 		log.Printf("获取用户 %d 的收藏列表失败：%v", userId, err)
 		c.JSON(http.StatusInternalServerError, ErrorResponse{StatusCode: -1, StatusMsg: "获取收藏列表失败"})

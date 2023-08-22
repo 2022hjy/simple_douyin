@@ -144,7 +144,7 @@ func InitMq() {
 
 // SendMessage 用于发送消息到交换器, routingKey为路由键，body为消息内容, 交换器名为events
 // 交换机将会根据路由键将消息发送到对应的队列中，无须指定队列名
-func SendMessage(routingKey string, obj interface{}) {
+func SendMessage(routingKey string, string2 string) {
 	err := ch.Publish(
 		exchangeName,
 		routingKey,
@@ -152,7 +152,7 @@ func SendMessage(routingKey string, obj interface{}) {
 		false,
 		amqp.Publishing{
 			ContentType: "text/plain",
-			Body:        []byte(obj),
+			Body:        []byte(string2),
 		})
 	failOnError(err, "Failed to publish a message")
 }
