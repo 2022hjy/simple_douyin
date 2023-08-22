@@ -5,12 +5,13 @@ import (
 	"log"
 	"net/http"
 	"simple_douyin/service"
+	"simple_douyin/util"
 	"strconv"
 )
 
-// VideoResponse 返回给 Controller 层的 VideoResponse 结构体
+// ErrorResponse VideoResponse 返回给 Controller 层的 VideoResponse 结构体
 type ErrorResponse struct {
-	StatusCode int    `json:"status_code"`
+	StatusCode string `json:"status_code"`
 	StatusMsg  string `json:"status_msg"`
 }
 
@@ -19,8 +20,9 @@ type FavoriteActionResponse struct {
 }
 
 type GetFavouriteListResponse struct {
-	Response
-	VideoList []service.Video `json:"video_list"`
+	StatusCode string              `json:"status_code"`
+	StatusMsg  string              `json:"status_msg,omitempty"`
+	VideoList  []VideoListResponse `json:"video_list"`
 }
 
 func init() {
@@ -33,13 +35,13 @@ func FavoriteAction(c *gin.Context, service service.FavoriteService) {
 
 	if err != nil {
 		log.Printf("解析 video_id 失败：%v", err)
-		c.JSON(http.StatusBadRequest, ErrorResponse{StatusCode: -1, StatusMsg: "无效的 video_id"})
+		c.JSON(http.StatusBadRequest, ErrorResponse{StatusCode: "0", StatusMsg: "无效的 video_id"})
 		return
 	}
 
 	if err := service.FavoriteAction(c.GetInt64("userId"), videoID); err != nil {
 		log.Printf("用户 %d 对视频 %d 的点赞操作失败：%v", c.GetInt64("userId"), videoID, err)
-		c.JSON(http.StatusInternalServerError, ErrorResponse{StatusCode: -1, StatusMsg: "收藏操作失败"})
+		c.JSON(http.StatusInternalServerError, ErrorResponse{StatusCode: "-1", StatusMsg: "收藏操作失败"})
 		return
 	}
 
@@ -52,17 +54,29 @@ func FavoriteList(c *gin.Context, service service.FavoriteService) {
 	userId, err := strconv.ParseInt(c.Query("user_id"), 10, 64)
 	if err != nil {
 		log.Printf("解析 user_id 失败：%v", err)
-		c.JSON(http.StatusBadRequest, ErrorResponse{StatusCode: -1, StatusMsg: "无效的 user_id"})
+		c.JSON(http.StatusBadRequest, ErrorResponse{StatusCode: "-1", StatusMsg: "无效的 user_id"})
 		return
 	}
 
 	videoList, err := service.GetFavoriteList(userId)
 	if err != nil {
 		log.Printf("获取用户 %d 的收藏列表失败：%v", userId, err)
-		c.JSON(http.StatusInternalServerError, ErrorResponse{StatusCode: -1, StatusMsg: "获取收藏列表失败"})
+		c.JSON(http.StatusInternalServerError, ErrorResponse{StatusCode: "-1", StatusMsg: "获取收藏列表失败"})
 		return
 	}
 
 	log.Printf("成功获取了用户 %d 的收藏列表", userId)
-	c.JSON(http.StatusOK, GetFavouriteListResponse{Response: Response{StatusCode: 0, StatusMsg: "获取收藏列表成功"}, VideoList: videoList})
+
+	var VideoResponseList []VideoResponse
+	for _, videoDao := range videoList {
+		videoResponse, err := util.ConvertDBVideoToResponse(videoDao, userId)
+		if err != nil {
+			log.Printf("转换 videoDao 失败：%v", err)
+			c.JSON(http.StatusInternalServerError, ErrorResponse{StatusCode: "-1", StatusMsg: "获取收藏列表失败"})
+			return
+		}
+		VideoResponseList = append(VideoResponseList, videoResponse)
+	}
+
+	c.JSON(http.StatusOK, VideoListResponse{Response{StatusCode: 0, StatusMsg: "获取收藏列表成功"}, VideoResponseList})
 }

@@ -38,33 +38,6 @@ CREATE TABLE `favorite`
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='用户点赞视频表';
 
 
-
----- Table structure for user_info
---DROP TABLE IF EXISTS `user_info`;
---CREATE TABLE `user_info`
---(
---    `id`             bigint unsigned NOT NULL AUTO_INCREMENT  unique  COMMENT '用户的唯一ID',
---    `username`       varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL unique DEFAULT '' COMMENT '用户名',
---    `follow_count`   int                                              DEFAULT 0 COMMENT '该用户关注的人数',
---    `follower_count` int                                              DEFAULT 0 COMMENT '关注该用户的人数',
---    `is_follow`      tinyint unsigned DEFAULT 0 COMMENT '标记是否被关注',
---    PRIMARY KEY (`id`)
---) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='用户信息表';
---
----- Table structure for user_login
---DROP TABLE IF EXISTS `user`;
---CREATE TABLE `user`
---(
---    `id`           bigint unsigned NOT NULL AUTO_INCREMENT unique  COMMENT '登录记录的唯一ID',
---    `user_info_id` bigint unsigned DEFAULT 0 COMMENT '相关用户的引用ID',
---    `username`     varchar(191) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '登录用户名',
---    `password`     varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '登录密码',
---    PRIMARY KEY (`id`),
---    UNIQUE INDEX `idx_username` (`username`),
---    KEY            `fk_user_info_login` (`user_info_id`) USING BTREE,
---    CONSTRAINT `fk_user_info_login` FOREIGN KEY (`user_info_id`) REFERENCES `user_info` (`id`)
---) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC COMMENT='用户登录信息表';
-
 DROP TABLE IF EXISTS `user`;
 CREATE TABLE `user`  (
   `user_id` bigint UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '登录记录的唯一ID',

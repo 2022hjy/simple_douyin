@@ -8,7 +8,8 @@ import (
 	"simple_douyin/middleware/redis"
 )
 
-func InitMiddleware(apiRouter *gin.RouterGroup) { // 请将 "YOUR_ROUTER_TYPE" 替换为您的 apiRouter 类型
+func InitMiddleware(apiRouter *gin.RouterGroup) {
+
 	// 初始化 logrus
 	log.LogrusInit()
 
