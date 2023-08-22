@@ -9,7 +9,9 @@ import (
 	"mime/multipart"
 	"os"
 	"simple_douyin/config"
+	"simple_douyin/controller"
 	"simple_douyin/dao"
+	"simple_douyin/util"
 	"sync"
 	"time"
 )
@@ -32,7 +34,7 @@ func GetVideoServiceInstance() *VideoServiceImpl {
 	return videoServiceImp
 }
 
-// Publish 将视频上传到oss并保存到数据库中
+// Publish ==================== publish接口 ====================
 func (videoService *VideoServiceImpl) Publish(data *multipart.FileHeader, title string, userId int64) error {
 	// 保证唯一的 videoName
 	videoName := uuid.New().String()
@@ -83,17 +85,30 @@ func UploadVideoToOSS(file *multipart.FileHeader, title string) error {
 	return nil
 }
 
-//===================已测试完成接口===================
+// ======================= feed接口 =======================
+// getRespVideos dao.video --> FeedResponse
+func (videoService *VideoServiceImpl) getRespVideos(plainVideos []dao.Video, userId int64) ([]controller.VideoResponse, error) {
+	var douyinVideos []controller.VideoResponse
+	for _, video := range plainVideos {
+		responce, err := util.ConvertDBVideoToResponse(video, userId)
+		if err != nil {
+			log.Println("getRespVideos:", err)
+			return []controller.VideoResponse{}, nil
+		}
+		douyinVideos = append(douyinVideos, responce)
+	}
+	return douyinVideos, nil
+}
 
 // PublishList 获取某位用户的视频信息list
-func (videoService *VideoServiceImpl) PublishList(userId int64) ([]Video, error) {
-	videos := make([]Video, 0, config.VideoInitNum)
+func (videoService *VideoServiceImpl) PublishList(userId int64) ([]controller.VideoResponse, error) {
+	videos := make([]controller.VideoResponse, 0, config.VideoInitNum)
 	plainVideos, err := dao.GetVideosByUserId(userId)
 	if err != nil {
 		log.Println("GetVideosByUserId:", err)
 		return nil, err
 	}
-	err = videoService.getRespVideos(&videos, &plainVideos, userId)
+	videos, err = videoService.getRespVideos(plainVideos, userId)
 	if err != nil {
 		log.Println("getRespVideos:", err)
 		return nil, err
@@ -102,81 +117,26 @@ func (videoService *VideoServiceImpl) PublishList(userId int64) ([]Video, error)
 }
 
 // Feed 按投稿时间倒序的视频list
-func (videoService *VideoServiceImpl) Feed(latestTime time.Time, userId int64) ([]Video, time.Time, error) {
-	videos := make([]Video, 0, config.VideoInitNumPerRefresh)
+func (videoService *VideoServiceImpl) Feed(latestTime time.Time, userId int64) ([]controller.VideoResponse, time.Time, error) {
+	douyinVideos := make([]controller.VideoResponse, 0, config.VideoInitNumPerRefresh)
 	plainVideos, err := dao.GetVideosByLatestTime(latestTime)
 	if err != nil {
 		log.Println("GetVideosByLatestTime:", err)
 		return nil, time.Time{}, err
 	}
 	if plainVideos == nil || len(plainVideos) == 0 {
-		return videos, time.Time{}, nil
+		return []controller.VideoResponse{}, time.Time{}, nil
 	}
-	err = videoService.getRespVideos(&videos, &plainVideos, userId)
-	if err != nil {
-		log.Println("getRespVideos:", err)
-		return nil, time.Time{}, err
-	}
-	return videos, plainVideos[len(plainVideos)-1].CreatedAt, nil
-}
 
-// 获取视频信息list
-func (videoService *VideoServiceImpl) getRespVideos(videos *[]Video, plainVideos *[]dao.Video, userId int64) error {
-	for _, tmpVideo := range *plainVideos {
-		var video Video
-		//ConvertDBVideoToResponse(&video, &tmpVideo, userId)
-		err := videoService.combineVideo(&video, &tmpVideo, userId)
-		if err != nil {
-			return err
-		}
-		*videos = append(*videos, video)
-	}
-	return nil
-}
-
-// TODO TEST dao.video (--> service.video )--> Responce
-func (videoService *VideoServiceImpl) combineVideo(video *Video, plainVideo *dao.Video, tokenId int64) error {
-	var wg sync.WaitGroup
-	wg.Add(4)
-	video.Video = *plainVideo
-	go func(v *Video) {
-		user := dao.User{
-			UserId:   1,
-			Username: "test",
-		}
-		v.Author = user
-		wg.Done()
-	}(video)
-
-	// 视频点赞数量
-	go func(v *Video) {
-		favoriteCount := int64(100)
-		v.FavoriteCount = favoriteCount
-		wg.Done()
-	}(video)
-
-	// 视频评论数量
-	go func(v *Video) {
-		count := int64(10)
-		v.CommentCount = count
-		wg.Done()
-	}(video)
-
-	// 当前登录用户/游客是否对该视频点过赞
-	go func(v *Video) {
-		v.IsFavorite = 0
-		wg.Done()
-	}(video)
-
-	wg.Wait()
-	return nil
+	douyinVideos, err = videoServiceImp.getRespVideos(plainVideos, userId)
+	return douyinVideos, plainVideos[len(plainVideos)-1].CreatedAt, nil
 }
 
 // GetVideoListById 根据videoIdList查询视频信息
-func (videoService *VideoServiceImpl) GetVideoListById(videoIdList []int64, userId int64) ([]Video, error) {
-	videoList := make([]Video, 0, config.VideoInitNum)
+func (videoService *VideoServiceImpl) GetVideoListById(videoIdList []int64, userId int64) ([]controller.VideoResponse, error) {
+	videoList := make([]controller.VideoResponse, 0, config.VideoInitNum)
 	plainVideoList, _ := dao.GetVideoListById(videoIdList)
-	err := videoService.getRespVideos(&videoList, &plainVideoList, userId)
+	videoList, err := videoService.getRespVideos(plainVideoList, userId)
 	if err != nil {
 		log.Println("getRespVideos:", err)
 		return nil, err

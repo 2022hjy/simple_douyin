@@ -11,7 +11,7 @@ import (
 
 type VideoListResponse struct {
 	Response
-	VideoList []service.Video `json:"video_list"`
+	VideoList []VideoResponse `json:"video_list"`
 }
 
 // Publish 投稿视频
