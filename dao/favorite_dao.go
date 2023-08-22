@@ -226,7 +226,10 @@ func GetfavoriteCount(videoId int64) (int, error) {
 			return 0, errDb
 		}
 		// 将数据重新设置到 Redis
-		redis.SetValueWithRandomExp(UIdFVIdR, key, countFromDb)
+		err := redis.SetValueWithRandomExp(UIdFVIdR, key, countFromDb)
+		if err != nil {
+			return 0, err
+		}
 		return int(countFromDb), nil
 	}
 	return count, nil

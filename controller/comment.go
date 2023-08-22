@@ -2,10 +2,8 @@ package controller
 
 import (
 	"github.com/gin-gonic/gin"
+	"log"
 	"net/http"
-	"simple_douyin/config"
-	"simple_douyin/dao"
-	"simple_douyin/middleware/redis"
 	"simple_douyin/service"
 	"simple_douyin/util"
 	"strconv"
@@ -104,29 +102,39 @@ func CommentAction(c *gin.Context) {
 
 func CommentList(c *gin.Context) {
 	videoId, err := strconv.ParseInt(c.Query("video_id"), 10, 64)
+	token, _ := strconv.ParseInt(c.Query("token"), 10, 64)
 	if err != nil {
-		respondWithError(c, -1, "comment videoId json invalid: "+err.Error())
-		return
+		c.JSON(http.StatusInternalServerError, CommentListResponse{
+			Response: Response{StatusCode: -1, StatusMsg: "comment videoId json invalid"},
+		})
 	}
 	commentList, err := commentService.GetCommentList(videoId)
 	var commentResponseList []CommentResponse
 	for i, comment := range commentList {
+		/*
+			userId := comment.UserId
+			UIdU := redis.Clients.UserId_UserR
+			key := config.UserId_User_KEY_PREFIX + strconv.FormatInt(userId, 10)
+			userdao, err := redis.GetKeysAndUpdateExpiration(UIdU, key)
+			var UserDao dao.UserDao
+			if userdao == nil || err != nil {
+				//从数据库中获得用户信息
+				userDao := dao.UserDao{}
+				UserDao, _ = userDao.GetUserById(userId)
+			} else {
+				UserDao, _ = userdao.(dao.UserDao)
+			}
+			//todo 获得评论者的信息，进行转化 User := dao.GetUserById(userId)
+			//todo 获得FavoriteCount int64, FollowCount int64, FollowerCount int64, IsFollow bool, TotalFavorited string, WorkCount int64
+			UserResponse := util.ConvertDBUserToResponse(UserDao)
+		*/
 		userId := comment.UserId
-		UIdU := redis.Clients.UserId_UserR
-		key := config.UserId_User_KEY_PREFIX + strconv.FormatInt(userId, 10)
-		userdao, err := redis.GetKeysAndUpdateExpiration(UIdU, key)
-		var UserDao dao.UserDao
-		if userdao == nil || err != nil {
-			//从数据库中获得用户信息
-			userDao := dao.UserDao{}
-			UserDao, _ = userDao.GetUserById(userId)
-		} else {
-			UserDao, _ = userdao.(dao.UserDao)
+		userInfo, _ := userService.QueryUserInfo(userId, token)
+		if err != nil {
+			log.Println("获取用户信息失败")
+			return
 		}
-		//todo 获得评论者的信息，进行转化 User := dao.GetUserById(userId)
-		//todo 获得FavoriteCount int64, FollowCount int64, FollowerCount int64, IsFollow bool, TotalFavorited string, WorkCount int64
-		UserResponse := util.ConvertDBUserToResponse(UserDao)
-		commentResponseList[i] = util.ConvertDBCommentToResponse(comment, UserResponse)
+		commentResponseList[i] = util.ConvertDBCommentToResponse
 		commentResponseList = append(commentResponseList, commentResponseList[i])
 	}
 
