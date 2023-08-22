@@ -51,6 +51,7 @@ type RedisClients struct {
 	UserId_FollowersR   *redis.Client
 	UserId_FollowingsR  *redis.Client
 	UserId_FriendsR     *redis.Client
+	UserAllId_MessageR  *redis.Client
 }
 
 //    获取用户的所有点赞视频：只需查询 UserId_FavoriteVideoIdR 集合。
@@ -110,6 +111,11 @@ func InitRedis() {
 			Addr:     ProdRedisAddr,
 			Password: ProRedisPwd,
 			DB:       13,
+		}),
+		VideoId_VideoR: redis.NewClient(&redis.Options{
+			Addr:     ProdRedisAddr,
+			Password: ProRedisPwd,
+			DB:       14,
 		}),
 	}
 }
