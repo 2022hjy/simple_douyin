@@ -89,17 +89,17 @@ func InitRedis() {
 			Password: ProRedisPwd,
 			DB:       5,
 		}),
-		UserFollowings: redis.NewClient(&redis.Options{
+		UserId_FollowingsR: redis.NewClient(&redis.Options{
 			Addr:     ProdRedisAddr,
 			Password: ProRedisPwd,
 			DB:       11,
 		}),
-		User_FollowersR: redis.NewClient(&redis.Options{
+		UserId_FollowersR: redis.NewClient(&redis.Options{
 			Addr:     ProdRedisAddr,
 			Password: ProRedisPwd,
 			DB:       12,
 		}),
-		UserFriends: redis.NewClient(&redis.Options{
+		UserId_FriendsR: redis.NewClient(&redis.Options{
 			Addr:     ProdRedisAddr,
 			Password: ProRedisPwd,
 			DB:       13,
