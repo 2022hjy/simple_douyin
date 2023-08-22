@@ -21,7 +21,7 @@ type FriendUserListResponse struct {
 // 关系操作
 // RelationAction no practical effect, just check if token is valid
 func RelationAction(c *gin.Context) {
-	userId := c.GetInt64("userId")
+	userId := c.GetInt64("token_user_id")
 	//userId, err1 := strconv.ParseInt(c.Query("userId"), 10, 64)
 	toUserId, err2 := strconv.ParseInt(c.Query("to_user_id"), 10, 64)
 	actionType, err3 := strconv.ParseInt(c.Query("action_type"), 10, 64)
