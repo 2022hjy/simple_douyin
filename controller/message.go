@@ -52,5 +52,6 @@ func MessageChat(c *gin.Context) {
 		})
 	} else {
 		c.JSON(http.StatusOK, ChatResponse{Response: Response{StatusCode: 0, StatusMsg: "MessageChat Success"}, MessageList: messages})
+
 	}
 }

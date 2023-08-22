@@ -9,6 +9,7 @@ const (
 	RedisAddr  = "localhost:6379"
 	RedisPwd   = ""
 	THREASHOLD = 10
+	ExpireTime = 24 * time.Hour
 )
 
 // Mq 消息队列

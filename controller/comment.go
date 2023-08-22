@@ -3,7 +3,11 @@ package controller
 import (
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"simple_douyin/config"
+	"simple_douyin/dao"
+	"simple_douyin/middleware/redis"
 	"simple_douyin/service"
+	"simple_douyin/util"
 	"strconv"
 )
 
@@ -22,16 +26,17 @@ var (
 
 func init() {
 	commentService = service.GetCommentServiceInstance()
+	userService = service.NewUserServiceInstance()
 }
 
 type CommentListResponse struct {
 	Response
-	CommentList []Comment `json:"comment_list,omitempty"`
+	CommentList []CommentResponse `json:"comment_list,omitempty"`
 }
 
 type CommentActionResponse struct {
 	Response
-	Comment Comment `json:"comment,omitempty"`
+	Comment CommentResponse `json:"comment,omitempty"`
 }
 
 // CommentAction no practical effect, just check if token is valid
@@ -81,7 +86,7 @@ func CommentAction(c *gin.Context) {
 			})
 			return
 		}
-		err = commentService.DeleteComment(commentId)
+		err = commentService.DeleteComment(videoId, commentId)
 		if err != nil {
 			c.JSON(http.StatusOK, CommentActionResponse{
 				Response: Response{StatusCode: -1,
@@ -98,20 +103,40 @@ func CommentAction(c *gin.Context) {
 }
 
 func CommentList(c *gin.Context) {
-	userId := c.GetInt64("userId")
 	videoId, err := strconv.ParseInt(c.Query("video_id"), 10, 64)
 	if err != nil {
 		respondWithError(c, -1, "comment videoId json invalid: "+err.Error())
 		return
 	}
-	commentList, err := commentService.GetCommentList(videoId, userId)
+	commentList, err := commentService.GetCommentList(videoId)
+	var commentResponseList []CommentResponse
+	for i, comment := range commentList {
+		userId := comment.UserId
+		UIdU := redis.Clients.UserId_UserR
+		key := config.UserId_User_KEY_PREFIX + strconv.FormatInt(userId, 10)
+		userdao, err := redis.GetKeysAndUpdateExpiration(UIdU, key)
+		var UserDao dao.UserDao
+		if userdao == nil || err != nil {
+			//从数据库中获得用户信息
+			userDao := dao.UserDao{}
+			UserDao, _ = userDao.GetUserById(userId)
+		} else {
+			UserDao, _ = userdao.(dao.UserDao)
+		}
+		//todo 获得评论者的信息，进行转化 User := dao.GetUserById(userId)
+		//todo 获得FavoriteCount int64, FollowCount int64, FollowerCount int64, IsFollow bool, TotalFavorited string, WorkCount int64
+		UserResponse := util.ConvertDBUserToResponse(UserDao)
+		commentResponseList[i] = util.ConvertDBCommentToResponse(comment, UserResponse)
+		commentResponseList = append(commentResponseList, commentResponseList[i])
+	}
+
 	if err != nil {
 		respondWithError(c, -1, err.Error())
 		return
 	}
 	c.JSON(http.StatusOK, CommentListResponse{
 		Response:    Response{StatusCode: 0},
-		CommentList: commentList,
+		CommentList: commentResponseList,
 	})
 	return
 }

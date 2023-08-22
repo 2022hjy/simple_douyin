@@ -13,7 +13,7 @@ type Video struct {
 	Title         string    `json:"title"`          // 视频标题
 	PlayUrl       string    `json:"play_url"`       // 视频播放地址
 	CoverUrl      string    `json:"cover_url"`      // 视频封面地址
-	IsFavorite    bool      `json:"is_favorite"`    // 是否被like
+	IsFavorite    int       `json:"is_favorite"`    // 是否被like
 	FavoriteCount int64     `json:"favorite_count"` // like数
 	CommentCount  int64     `json:"comment_count"`  // 评论数
 	CreatedAt     time.Time // 视频创建时间
@@ -111,4 +111,15 @@ func UploadVideo(videoName string, authorId int64, videoTitle string) error {
 	video.CreatedAt = time.Now()
 	video.UpdatedAt = time.Now()
 	return SaveVideo(video)
+}
+
+// GetVideoIdListByUserId 根据用户 Id 获取该用户已发布的所有视频
+func GetVideoIdListByUserId(userId int64) ([]int64, error) {
+	var videoIdList []int64
+	result := database.Db.Model(Video{}).Where("user_info_id = ?", userId).Pluck("id", &videoIdList)
+	if result.Error != nil {
+		log.Println("获取用户已发布视频失败！", result.Error)
+		return nil, result.Error
+	}
+	return videoIdList, nil
 }

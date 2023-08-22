@@ -27,7 +27,7 @@ func InitRouter(apiRouter *gin.RouterGroup) *gin.RouterGroup {
 	rInteraction := apiRouter.Group("/relation")
 	{
 		rInteraction.POST("/action/", controller.RelationAction)
-		rInteraction.GET("/follow/list/", controller.FollowList)
+		rInteraction.GET("/follow/list/", controller.Followlist)
 		rInteraction.GET("/follower/list/", controller.FollowerList)
 		rInteraction.GET("/friend/list/", controller.FriendList)
 	}
