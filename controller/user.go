@@ -4,23 +4,12 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"simple_douyin/model"
 	"simple_douyin/service"
 )
 
 var (
 	userService = service.NewUserServiceInstance()
 )
-
-type LoginRequest struct {
-	UserName string
-	Password string
-}
-
-type RegisterRequest struct {
-	UserName string
-	Password string
-}
 
 type LoginResponse struct {
 	Response
@@ -33,18 +22,18 @@ type InfoResponse struct {
 }
 
 func Register(c *gin.Context) {
-	var registerRequest RegisterRequest
+	var loginInfo service.LoginInfo
 
 	// 1. 检验参数，如果不符合要求，返回错误信息
-	if err := c.ShouldBindJSON(&registerRequest); err != nil {
+	if err := c.ShouldBindJSON(&loginInfo); err != nil {
 		c.JSON(http.StatusBadRequest,
-			model.ErrorResponse(model.ErrorCode, "Invalid parameter"))
+			Error(http.StatusBadRequest, "Invalid parameter"))
 		return
 	}
-	credential, err := userService.Register(registerRequest)
+	credential, err := userService.Register(loginInfo)
 	if err != nil {
 		c.JSON(http.StatusBadRequest,
-			model.ErrorResponse(model.ErrorCode, err.Error()))
+			Error(http.StatusBadRequest, err.Error()))
 		return
 	}
 	c.JSON(http.StatusOK, LoginResponse{
@@ -54,18 +43,18 @@ func Register(c *gin.Context) {
 }
 
 func Login(c *gin.Context) {
-	var loginRequest LoginRequest
+	var loginInfo service.LoginInfo
 	// 1. 检验参数，如果不符合要求，返回错误信息
-	if err := c.ShouldBindJSON(&loginRequest); err != nil {
+	if err := c.ShouldBindJSON(&loginInfo); err != nil {
 		c.JSON(http.StatusBadRequest,
-			model.ErrorResponse(model.ErrorCode, "Invalid parameter"))
+			Error(http.StatusBadRequest, "Invalid parameter"))
 		return
 	}
 	// 2. 调用service层的Login方法，返回结果
-	credential, err := userService.Login(loginRequest)
+	credential, err := userService.Login(loginInfo)
 	if err != nil {
 		c.JSON(http.StatusBadRequest,
-			model.ErrorResponse(model.ErrorCode, err.Error()))
+			Error(http.StatusBadRequest, err.Error()))
 		return
 	}
 	// 3. 返回结果
@@ -78,11 +67,10 @@ func Login(c *gin.Context) {
 func UserInfo(c *gin.Context) {
 	// 从context中获取userId并转为int64类型
 	userId := c.GetInt64("userId")
-	// todo 是否需要加入检验userId的代码
 	userInfo, err := userService.QuerySelfInfo(userId)
 	if err != nil {
 		c.JSON(http.StatusBadRequest,
-			model.ErrorResponse(model.ErrorCode, err.Error()))
+			Error(http.StatusBadRequest, err.Error()))
 		return
 	}
 	c.JSON(http.StatusOK, InfoResponse{

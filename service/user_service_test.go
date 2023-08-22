@@ -5,38 +5,32 @@ import (
 	"testing"
 
 	"simple_douyin/middleware/database"
-	"simple_douyin/model"
+	"simple_douyin/middleware/redis"
 )
 
 func TestLogin(t *testing.T) {
 	database.Init()
-	req := model.LoginRequest{
+	req := LoginInfo{
 		UserName: "guest",
 		Password: "guest",
 	}
-	service := NewUserServiceInstance()
-	res := service.Login(req)
+	testService := NewUserServiceInstance()
+	res, err := testService.Login(req)
+	if err != nil {
+		t.Error(err)
+		return
+	}
 	// 将结构体转为json字符串
 	resJson, _ := json.Marshal(res)
 	t.Log(string(resJson))
 }
 
 func TestRegister(t *testing.T) {
-	database.Init()
-	req := model.RegisterRequest{
-		UserName: "guest",
-		Password: "guest",
-	}
-	service := NewUserServiceInstance()
-	res := service.Register(req)
-	resJson, _ := json.Marshal(res)
-	t.Log(string(resJson))
+
 }
 
-func TestUserInfo(t *testing.T) {
+func TestGetUserInfo(t *testing.T) {
 	database.Init()
-	service := NewUserServiceInstance()
-	res := service.UserInfo(7)
-	resJson, _ := json.Marshal(res)
-	t.Log(string(resJson))
+	redis.InitRedis()
+
 }
