@@ -1,22 +1,27 @@
 package service
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"simple_douyin/config"
 	"simple_douyin/dao"
+	"simple_douyin/middleware/redis"
+	"strconv"
 	"sync"
 	"time"
 )
 
-type MessageServiceImpl struct {
-}
+type MessageServiceImpl struct{}
 
-// 单例模式简化代码
 var (
 	messageServiceImpl *MessageServiceImpl
 	messageServiceOnce sync.Once
 )
+
+func init() {
+	messageServiceImpl = GetMessageServiceInstance()
+}
 
 func GetMessageServiceInstance() *MessageServiceImpl {
 	messageServiceOnce.Do(func() {
@@ -25,45 +30,58 @@ func GetMessageServiceInstance() *MessageServiceImpl {
 	return messageServiceImpl
 }
 
-// SendMessage 处理err的，有用到dao.SendMessage的方法
-func (messageService *MessageServiceImpl) SendMessage(id int64, fromUserId int64, toUserId int64, content string, actionType int64) error {
-	var err error
-	switch actionType {
-	case 1:
-		err = dao.SendMessage(id, fromUserId, toUserId, content, actionType)
-	default:
-		err = fmt.Errorf("未定义的 actionType=%d", actionType)
-		log.Println(err)
+func (c *MessageServiceImpl) SendMessage(fromUserId int64, toUserId int64, content string) (err error) {
+	message := dao.Message{
+		FromUserID: fromUserId,
+		ToUserID:   toUserId,
+		Content:    content,
+		CreateTime: time.Unix(time.Now().Unix(), 0),
 	}
-	return err
+	LaseMessage, err := dao.SendMessage(message)
+
+	//存入reids
+	updateMessageRedis(fromUserId, toUserId, LaseMessage)
+	return nil
 }
 
-func (messageService *MessageServiceImpl) MessageChat(loginUserId int64, targetUserId int64, latestTime time.Time) ([]Message, error) {
-	messages := make([]Message, 0, config.VIDEO_INIT_NUM)
-	//MessageChat:当前登录用户和其他指定用户的聊天记录
-	plainMessages, err := dao.MessageChat(loginUserId, targetUserId, latestTime)
+func (c *MessageServiceImpl) MessageChat(loginUserId int64, targetUserId int64) ([]dao.Message, error) {
+	messages := make([]dao.Message, 0, config.MessageInitNum)
+	messages, err := dao.MessageChat(loginUserId, targetUserId)
 	if err != nil {
-		log.Println("MessageChat Service:", err)
-		return nil, err
-	}
-	// 将原始消息数据转换为响应所需的消息格式，并将这些消息添加到 messages 切片中
-	err = messageService.getRespMessage(&messages, &plainMessages)
-	if err != nil {
-		log.Println("getRespMessage:", err)
+		log.Println("MessageChat Service出错:", err.Error())
 		return nil, err
 	}
 	return messages, nil
 }
 
-func (messageService *MessageServiceImpl) LatestMessage(loginUserId int64, targetUserId int64) (LatestMessage, error) {
+func (c *MessageServiceImpl) LatestMessage(loginUserId int64, targetUserId int64) (LatestMessage, error) {
+
+	lastMessage, err := c.getLastMessageFromRedis(loginUserId, targetUserId)
+	if err != nil {
+		return LatestMessage{}, err
+	}
+
+	if lastMessage.Message != "" {
+		return lastMessage, nil
+	}
+
+	lastMessage, err = c.getLastMessageFromDB(loginUserId, targetUserId)
+	if err != nil {
+		return LatestMessage{}, err
+	}
+
+	return lastMessage, nil
+}
+
+func (c *MessageServiceImpl) getLastMessageFromDB(loginUserId int64, targetUserId int64) (LatestMessage, error) {
 	plainMessage, err := dao.LatestMessage(loginUserId, targetUserId)
 	if err != nil {
 		log.Println("LatestMessage Service:", err)
 		return LatestMessage{}, err
 	}
 	var latestMessage LatestMessage
-	latestMessage.Message = plainMessage.MsgContent
-	if plainMessage.UserId == loginUserId {
+	latestMessage.Message = plainMessage.Content
+	if plainMessage.FromUserID == loginUserId {
 		// 最新一条消息是当前登录用户发送的
 		latestMessage.MsgType = 1
 	} else {
@@ -73,27 +91,60 @@ func (messageService *MessageServiceImpl) LatestMessage(loginUserId int64, targe
 	return latestMessage, nil
 }
 
-// 返回 message list 接口所需的 Message 结构体
-//
-//	下一个函数的list类型，获取回复消息
-func (messageService *MessageServiceImpl) getRespMessage(messages *[]Message, plainMessages *[]dao.Message) error {
-	for _, tmpMessage := range *plainMessages {
-		var message Message
-		err := messageService.combineMessage(&message, &tmpMessage)
-		if err != nil {
-			return err
-		}
-		*messages = append(*messages, message)
+func (c *MessageServiceImpl) getLastMessageFromRedis(loginUserId int64, targetUserId int64) (LatestMessage, error) {
+	var latestMessage LatestMessage
+	uId := fmt.Sprintf("%s%d-%d", config.UserAllId_MessageR_KEY_PREFIX, loginUserId, targetUserId)
+	UMClient := redis.Clients.UserAllId_MessageR
+	if UMClient == nil {
+		return latestMessage, fmt.Errorf("redis client is nil")
 	}
-	return nil
+
+	messageJson, err := redis.GetValue(UMClient, uId)
+	if err != nil {
+		return latestMessage, fmt.Errorf("get redis value failed: %v", err)
+	}
+
+	if unmarshalErr := json.Unmarshal([]byte(messageJson), &latestMessage); unmarshalErr != nil {
+		return latestMessage, fmt.Errorf("unmarshal message failed: %v", unmarshalErr)
+	}
+
+	_, err = redis.GetKeysAndUpdateExpiration(UMClient, uId)
+	if err != nil {
+		return latestMessage, fmt.Errorf("update redis expiration failed: %v", err)
+	}
+
+	return latestMessage, nil
 }
 
-// 把service的message转成dao的message
-func (messageService *MessageServiceImpl) combineMessage(message *Message, plainMessage *dao.Message) error {
-	message.Id = plainMessage.Id
-	message.UserId = plainMessage.UserId
-	message.ReceiverId = plainMessage.ReceiverId
-	message.MsgContent = plainMessage.MsgContent
-	message.CreatedAt = plainMessage.CreatedAt.Unix()
-	return nil
+// updateMessageRedis 更新redis
+func updateMessageRedis(loginUserId int64, targetUserId int64, message dao.Message) {
+	// UserAllId --> message
+	UMClient := redis.Clients.UserAllId_MessageR
+	if UMClient == nil {
+		log.Fatalf("redis client is nil")
+		return
+	}
+
+	uId := config.UserAllId_MessageR_KEY_PREFIX + strconv.FormatInt(loginUserId, 10) + "-" + strconv.FormatInt(targetUserId, 10)
+
+	LatestMessage := LatestMessage{
+		Message: message.Content,
+	}
+	if message.FromUserID == loginUserId {
+		LatestMessage.MsgType = 1
+	} else {
+		LatestMessage.MsgType = 0
+	}
+
+	messageJson, serializationErr := json.Marshal(LatestMessage)
+	if serializationErr != nil {
+		log.Fatalf("jsonfiy messag failed, err:%v\n", messageJson)
+		return
+	}
+	err := redis.SetValueWithRandomExp(UMClient, uId, string(messageJson))
+	if err != nil {
+		log.Fatalf("set redis failed, err:%v\n", err)
+		return
+	}
+	log.Println("redis缓存Message成功！")
 }

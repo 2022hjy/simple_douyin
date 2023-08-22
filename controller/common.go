@@ -12,13 +12,6 @@ func Success() Response {
 	}
 }
 
-func Error(code int32, msg string) Response {
-	return Response{
-		StatusCode: code,
-		StatusMsg:  msg,
-	}
-}
-
 // VideoResponse data 内部返回给前端的结构体
 type VideoResponse struct {
 	Id            int64        `json:"id,omitempty"`
@@ -33,17 +26,14 @@ type VideoResponse struct {
 
 // UserResponse  data 返回给前端的结构体
 type UserResponse struct {
-	Id              int64  `json:"id,omitempty"`
-	Name            string `json:"name,omitempty"`
-	Avatar          string `json:"avatar"`           // 用户头像
-	BackgroundImage string `json:"background_image"` // 用户个人页顶部大图
-	Signature       string `json:"signature"`        // 个人简介
-	FollowCount     int64  `json:"follow_count,omitempty"`
-	FollowerCount   int64  `json:"follower_count,omitempty"`
-	IsFollow        bool   `json:"is_follow,omitempty"`
-	FavoriteCount   int64  `json:"favorite_count"`  // 喜欢数
-	TotalFavorited  string `json:"total_favorited"` // 获赞数量
-	WorkCount       int64  `json:"work_count"`      // 作品数
+	User
+
+	FollowCount    int64  `json:"follow_count,omitempty"`
+	FollowerCount  int64  `json:"follower_count,omitempty"`
+	IsFollow       bool   `json:"is_follow,omitempty"`
+	FavoriteCount  int64  `json:"favorite_count"`  // 喜欢数
+	TotalFavorited string `json:"total_favorited"` // 获赞数量
+	WorkCount      int64  `json:"work_count"`      // 作品数
 }
 
 type FriendUser struct {
@@ -72,8 +62,10 @@ type User struct {
 	Password        string `json:"-"`                // 不返回给前端
 }
 
-type Message struct {
+type MessageSave struct {
 	Id         int64  `json:"id,omitempty"`
+	FromUserId int64  `json:"from_user_id,omitempty"`
+	ToUserId   int64  `json:"to_user_id,omitempty"`
 	Content    string `json:"content,omitempty"`
 	CreateTime string `json:"create_time,omitempty"`
 }

@@ -19,21 +19,27 @@ const (
 
 // 视频模块相关配置
 const (
-	// VIDEO_INIT_NUM 每位作者初始展示的视频数量
-	VIDEO_INIT_NUM = 10
-	// VIDEO_NUM_PER_REFRESH 表示每次刷新时展示的视频数量，值为 6。
-	VIDEO_NUM_PER_REFRESH = 6
+	// VideoInitNum 每位作者初始展示的视频数量
+	VideoInitNum = 10
+	// VideoInitNumPerRefresh 表示每次刷新时展示的视频数量，值为 6。
+	VideoInitNumPerRefresh = 6
 
-	CUSTOM_DOMAIN = "CUSTOM_DOMAIN"
-	OSS_VIDEO_DIR = "OSS_VIDEO_DIR"
-	// PLAY_URL_PREFIX 播放视频的URL前缀
-	PLAY_URL_PREFIX = CUSTOM_DOMAIN + OSS_VIDEO_DIR
-	// COVER_URL_SUFFIX 频封面图的URL后缀，通过该后缀可以对视频进行截图并获取封面图
-	COVER_URL_SUFFIX      = "?x-oss-process=video/snapshot,t_2000,m_fast"
-	OSS_ACCESS_KEY_ID     = "OSS_ACCESS_KEY_ID"
-	OSS_ACCESS_KEY_SECRET = "OSS_ACCESS_KEY_SECRET"
-	OSS_BUCKET_NAME       = "OSS_BUCKET_NAME"
-	OSS_ENDPOINT          = "OSS_ENDPOINT"
+	CustomDomain = "CUSTOM_DOMAIN"
+	OssVideoDir  = "OSS_VIDEO_DIR"
+	// PlayUrlPrefix 播放视频的URL前缀
+	PlayUrlPrefix = CustomDomain + OssVideoDir
+	// CoverUrlSuffix 频封面图的URL后缀，通过该后缀可以对视频进行截图并获取封面图
+	CoverUrlSuffix     = "?x-oss-process=video/snapshot,t_2000,m_fast"
+	OssAccessKeyId     = "OSS_ACCESS_KEY_ID"
+	OssAccessKeySecret = "OSS_ACCESS_KEY_SECRET"
+	OssBucketName      = "OSS_BUCKET_NAME"
+	OssEndpoint        = "OSS_ENDPOINT"
+)
+
+// 消息模块相关配置
+const (
+	// MessageInitNum 每次刷新时展示的消息数量
+	MessageInitNum = 10
 )
 
 // JWT配置
