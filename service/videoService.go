@@ -10,7 +10,7 @@ import (
 // Video 返回给 Controller 层的 Video 结构体
 type Video struct {
 	dao.Video
-	Author User `json:"author"`
+	Author dao.User `json:"author"`
 }
 
 type VideoService interface {

@@ -2,7 +2,9 @@ package service
 
 import (
 	"fmt"
+	"io/ioutil"
 	"log"
+	"mime/multipart"
 	"simple_douyin/middleware/database"
 	"simple_douyin/middleware/redis"
 	"testing"
@@ -43,31 +45,30 @@ func TestVideoServiceImpl_GetVideoCnt(t *testing.T) {
 	fmt.Println("videoCnt:", videoCnt)
 }
 
-// TODO 将视频上传到oss并保存到数据库中
-//func TestVideoServiceImpl_SaveVideoInfo(t *testing.T) {
+// 将视频上传到oss 并保存到数据库
+func TestPublish(t *testing.T) {
+	filename := "videotest.mp4"
+	content, err := ioutil.ReadFile(filename)
+	videocontent := []byte(content)
+
+	fileHeader := &multipart.FileHeader{
+		Filename: "videotest.mp4",
+		Size:     int64(len(videocontent)),
+	}
+	log.Println(fileHeader.Filename)
+
+	title := "test title"
+	userId := int64(1)
+	videoService := &VideoServiceImpl{}
+
+	err = videoService.Publish(fileHeader, title, userId)
+	log.Println(err)
+}
+
+//func TestUploadVideo(t *testing.T) {
 //	database.Init()
-//	redis.InitRedis()
-//	videoInfo := Video{
-//		Video: dao.Video{
-//			Id:         1,
-//			UserInfoId: 2,
-//			Title:      "Sample Video",
-//			PlayUrl:    "https://example.com/sample_video",
-//			CoverUrl:   "https://example.com/sample_cover",
-//			CreatedAt:  time.Now(),
-//			UpdatedAt:  time.Now(),
-//		},
-//		Author: User{
-//			Id:   2,
-//			Name: "John Doe",
-//		},
-//		FavoriteCount: 12,
-//		CommentCount:  5,
-//		IsFavorite:    1,
-//	}
-//	err := videoServiceImp.Publish(videoInfo)
+//	err := UploadVideo("VID_2023_1_29", 1, "测试视频1")
 //	if err != nil {
-//		log.Default()
+//		return
 //	}
-//	fmt.Println("videoInfo:", videoInfo)
 //}

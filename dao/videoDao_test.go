@@ -13,16 +13,15 @@ func TestSaveVideo(t *testing.T) {
 	database.Init()
 
 	video := Video{
-		Id:            2,
-		UserInfoId:    226,
-		Title:         "测试视频1",
-		PlayUrl:       "https://www.baidu.com",
-		CoverUrl:      "https://www.baidu.com",
-		IsFavorite:    1,
-		FavoriteCount: 23,
-		CommentCount:  0,
-		CreatedAt:     time.Now(),
-		UpdatedAt:     time.Now(),
+		UserInfoId: 226,
+		Title:      "测试视频1",
+		PlayUrl:    "https://www.baidu.com",
+		CoverUrl:   "https://www.baidu.com",
+		//IsFavorite:    1,
+		//FavoriteCount: 23,
+		//CommentCount:  0,
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
 	}
 	err := SaveVideo(video)
 	if err != nil {

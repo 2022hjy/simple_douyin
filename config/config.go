@@ -24,16 +24,18 @@ const (
 	// VideoInitNumPerRefresh 表示每次刷新时展示的视频数量，值为 6。
 	VideoInitNumPerRefresh = 6
 
-	CustomDomain = "CUSTOM_DOMAIN"
-	OssVideoDir  = "OSS_VIDEO_DIR"
+	OssVideoDir = "OSS_VIDEO/"
 	// PlayUrlPrefix 播放视频的URL前缀
-	PlayUrlPrefix = CustomDomain + OssVideoDir
+	PlayUrlPrefix = OssVideoDir
+
 	// CoverUrlSuffix 频封面图的URL后缀，通过该后缀可以对视频进行截图并获取封面图
-	CoverUrlSuffix     = "?x-oss-process=video/snapshot,t_2000,m_fast"
-	OssAccessKeyId     = "OSS_ACCESS_KEY_ID"
-	OssAccessKeySecret = "OSS_ACCESS_KEY_SECRET"
-	OssBucketName      = "OSS_BUCKET_NAME"
-	OssEndpoint        = "OSS_ENDPOINT"
+	CoverUrlSuffix = "?x-oss-process=video/snapshot,t_2000,m_fast"
+
+	OssAccessKeyId     = "LTAI5tNUGBD7bCfAoUddQVVw"
+	OssAccessKeySecret = "1DM9nfo7MlGuN00sWFU0zrtkUELDtG"
+	OssBucketName      = "simple-tiktok"
+	OssEndpoint        = "https://oss-cn-beijing.aliyuncs.com"
+	//	https://simple-tiktok.oss-cn-beijing.aliyuncs.com
 )
 
 // 消息模块相关配置

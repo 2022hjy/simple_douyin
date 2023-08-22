@@ -3,24 +3,22 @@ package controller
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"log"
 	"net/http"
-	"path/filepath"
+	"simple_douyin/service"
+	"strconv"
 )
 
 type VideoListResponse struct {
 	Response
-	VideoList []VideoResponse `json:"video_list"`
+	VideoList []service.Video `json:"video_list"`
 }
 
-// Publish check token then save upload file to public directory
+// Publish 投稿视频
 func Publish(c *gin.Context) {
 	token := c.PostForm("token")
-
-	if _, exist := usersLoginInfo[token]; !exist {
-		c.JSON(http.StatusOK, Response{StatusCode: 1, StatusMsg: "User doesn't exist"})
-		return
-	}
-
+	log.Println("token:", token)
+	userId := c.GetInt64("userId")
 	data, err := c.FormFile("data")
 	if err != nil {
 		c.JSON(http.StatusOK, Response{
@@ -29,12 +27,13 @@ func Publish(c *gin.Context) {
 		})
 		return
 	}
-
-	filename := filepath.Base(data.Filename)
-	user := usersLoginInfo[token]
-	finalName := fmt.Sprintf("%d_%s", user.Id, filename)
-	saveFile := filepath.Join("./public/", finalName)
-	if err := c.SaveUploadedFile(data, saveFile); err != nil {
+	title := c.PostForm("title")
+	log.Printf("视频 title: %v\n", title)
+	videoService := service.GetVideoServiceInstance()
+	// 从 token 中获取 userId
+	err = videoService.Publish(data, title, userId)
+	if err != nil {
+		log.Println("上传文件失败")
 		c.JSON(http.StatusOK, Response{
 			StatusCode: 1,
 			StatusMsg:  err.Error(),
@@ -44,16 +43,32 @@ func Publish(c *gin.Context) {
 
 	c.JSON(http.StatusOK, Response{
 		StatusCode: 0,
-		StatusMsg:  finalName + " uploaded successfully",
+		StatusMsg:  fmt.Sprintf("《%s》视频上传成功", title),
 	})
 }
 
-// PublishList all users have same publish video list
+// PublishList 用户的视频发布列表，直接列出用户所有投稿过的视频
 func PublishList(c *gin.Context) {
+	// 获取到的userId，被访问的用户id
+	reqUserId := c.Query("user_id")
+	userId, _ := strconv.ParseInt(reqUserId, 10, 64)
+	log.Println("获取到用户 Id：", userId)
+	token := c.Query("token")
+	log.Println("获取到用户 token：", token)
+	videoService := service.GetVideoServiceInstance()
+	videos, err := videoService.PublishList(userId)
+	if err != nil {
+		c.JSON(http.StatusOK, FeedResponse{
+			Response:  Response{StatusCode: 1, StatusMsg: "获取用户视频发布列表失败!"},
+			VideoList: nil,
+		})
+		return
+	}
 	c.JSON(http.StatusOK, VideoListResponse{
 		Response: Response{
 			StatusCode: 0,
+			StatusMsg:  "获取用户发布的视频列表成功！",
 		},
-		VideoList: DemoVideos,
+		VideoList: videos,
 	})
 }
