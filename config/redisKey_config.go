@@ -9,9 +9,10 @@ const (
 	//	CommentId_CommentR *redis.Client
 	CommentId_Comment_KEY_PREFIX = "CommentId:"
 
-	User_Followers_KEY_PREFIX          = "UserId:"
-	UserId_Followings_KEY_PREFIX       = "UserId:"
-	UserId_Friends_KEY_PREFIX          = "UserId:"
+	User_Follow_KEY_PREFIX = "UserId:"
+	//User_Followers_KEY_PREFIX          = "UserId:"
+	//UserId_Followings_KEY_PREFIX       = "UserId:"
+	//UserId_Friends_KEY_PREFIX          = "UserId:"
 	UserId_FavoritedNum_KEY_PREFIX     = "UserId:"
 	UserId_FavoriteNum_KEY_PREFIX      = "UserId:"
 	VideoId_FavoritebUserId_KEY_PREFIX = "VideoId:"

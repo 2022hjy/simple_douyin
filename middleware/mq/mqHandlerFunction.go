@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log"
 	"simple_douyin/dao"
+	"strconv"
+	"strings"
 )
 
 // MessageHandler 定义消息处理函数
@@ -68,9 +70,55 @@ func RemoveLike(body string) {
 }
 
 func AddFollow(msg string) {
-	fmt.Println("Adding follow:", msg)
+	followDao := dao.NewFollowDaoInstance()
+	// 解析参数
+	params := strings.Split(fmt.Sprintf("%s", msg), "-")
+	log.Println("添加关注关系消费者获得 params:", params)
+
+	userId, _ := strconv.ParseInt(params[0], 10, 64)
+	targetId, _ := strconv.ParseInt(params[1], 10, 64)
+	insertOrUpdate := params[2]
+	// 数据库操作，最大重试次数 cnt
+	cnt := 10
+	for i := 0; i < cnt; i++ {
+		succeed := true
+		var err error
+		if insertOrUpdate == "insert" {
+			_, err = followDao.InsertFollowRelation(userId, targetId)
+		} else if insertOrUpdate == "update" {
+			_, err = followDao.UpdateFollowRelation(userId, targetId, int8(1))
+		}
+		if err != nil {
+			succeed = false
+		}
+		if succeed {
+			break
+		}
+	}
+
 }
 
 func RemoveFollow(msg string) {
-	fmt.Println("Removing follow:", msg)
+	followDao := dao.NewFollowDaoInstance()
+	// 解析参数
+	params := strings.Split(fmt.Sprintf("%s", msg), "-")
+	log.Println("添加关注关系消费者获得 params:", params)
+	userId, _ := strconv.ParseInt(params[0], 10, 64)
+	targetId, _ := strconv.ParseInt(params[1], 10, 64)
+	insertOrUpdate := params[2]
+	// 数据库操作，最大重试次数 cnt
+	cnt := 10
+	for i := 0; i < cnt; i++ {
+		succeed := true
+		var err error
+		if insertOrUpdate == "update" {
+			_, err = followDao.UpdateFollowRelation(userId, targetId, int8(0))
+		}
+		if err != nil {
+			succeed = false
+		}
+		if succeed {
+			break
+		}
+	}
 }
