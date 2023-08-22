@@ -2,7 +2,6 @@ package controller
 
 import (
 	"github.com/gin-gonic/gin"
-	"log"
 	"net/http"
 	"simple_douyin/service"
 	"simple_douyin/util"
@@ -15,7 +14,7 @@ const (
 )
 
 func respondWithError(c *gin.Context, statusCode int, errMsg string) {
-	c.JSON(http.StatusOK, Response{StatusCode: statusCode, StatusMsg: errMsg})
+	c.JSON(http.StatusOK, Response{StatusCode: int32(statusCode), StatusMsg: errMsg})
 }
 
 var (
@@ -39,7 +38,7 @@ type CommentActionResponse struct {
 
 // CommentAction no practical effect, just check if token is valid
 func CommentAction(c *gin.Context) {
-	userId := c.GetInt64("userId")
+	userId := c.GetInt64("token_user_id")
 	videoId, ConvertVideoErr := strconv.ParseInt(c.Query("video_id"), 10, 64)
 	if ConvertVideoErr != nil {
 		c.JSON(http.StatusOK, CommentActionResponse{
@@ -61,9 +60,10 @@ func CommentAction(c *gin.Context) {
 	case actionType == ADD_COMMENT:
 		content := c.Query("comment_text")
 		commentRes, err := commentService.Comment(userId, videoId, content)
+		var commentResponse = util.ConvertDBCommentToResponse(commentRes, userId)
 		//评论操作时
 		if err != nil {
-			c.JSON(http.StatusOK, CommentActionResponse{
+			c.JSON(http.StatusInternalServerError, CommentActionResponse{
 				Response: Response{StatusCode: -1, StatusMsg: "comment failed"},
 			})
 			return
@@ -71,7 +71,7 @@ func CommentAction(c *gin.Context) {
 		c.JSON(http.StatusOK, CommentActionResponse{
 			Response: Response{StatusCode: 0,
 				StatusMsg: "comment success"},
-			Comment: commentRes,
+			Comment: commentResponse,
 		})
 		return
 
@@ -102,7 +102,7 @@ func CommentAction(c *gin.Context) {
 
 func CommentList(c *gin.Context) {
 	videoId, err := strconv.ParseInt(c.Query("video_id"), 10, 64)
-	token, _ := strconv.ParseInt(c.Query("token"), 10, 64)
+	token, _ := strconv.ParseInt(c.Query("token_user_id"), 10, 64)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, CommentListResponse{
 			Response: Response{StatusCode: -1, StatusMsg: "comment videoId json invalid"},
@@ -128,13 +128,7 @@ func CommentList(c *gin.Context) {
 			//todo 获得FavoriteCount int64, FollowCount int64, FollowerCount int64, IsFollow bool, TotalFavorited string, WorkCount int64
 			UserResponse := util.ConvertDBUserToResponse(UserDao)
 		*/
-		userId := comment.UserId
-		userInfo, _ := userService.QueryUserInfo(userId, token)
-		if err != nil {
-			log.Println("获取用户信息失败")
-			return
-		}
-		commentResponseList[i] = util.ConvertDBCommentToResponse
+		commentResponseList[i] = util.ConvertDBCommentToResponse(comment, token)
 		commentResponseList = append(commentResponseList, commentResponseList[i])
 	}
 

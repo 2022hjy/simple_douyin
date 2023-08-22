@@ -28,11 +28,11 @@ import (
 
 // ConvertDBVideoToResponse 将数据库中的视频信息转换为响应的视频信息
 // tips: 这里的User是controller.UserResponse类型，不是dao.UserDAO类型！！！
-func ConvertDBVideoToResponse(dbVideo dao.Video) (controller.VideoResponse, error) {
+func ConvertDBVideoToResponse(dbVideo dao.Video, tokenId int64) (controller.VideoResponse, error) {
 	userService := service.NewUserServiceInstance()
 
 	// 使用 QueryUserInfo 获取视频作者的信息
-	userInfo, err := userService.QueryUserInfo(dbVideo.UserInfoId, 0) // 假设 tokenUserId 为0
+	userInfo, err := userService.QueryUserInfo(dbVideo.UserInfoId, tokenId) // 假设 tokenUserId 为0
 	if err != nil {
 		return controller.VideoResponse{}, err
 	}
@@ -82,11 +82,11 @@ func ConvertDBVideoToResponse(dbVideo dao.Video) (controller.VideoResponse, erro
 //	}
 //}
 
-func ConvertDBCommentToResponse(comment dao.CommentDao) controller.CommentResponse {
+func ConvertDBCommentToResponse(comment dao.CommentDao, tokenId int64) controller.CommentResponse {
 	userService := service.NewUserServiceInstance()
 
 	// 使用 QueryUserInfo 获取用户信息
-	userInfo, err := userService.QueryUserInfo(comment.UserId, 0) // 假设 tokenUserId 为0
+	userInfo, err := userService.QueryUserInfo(comment.UserId, tokenId) // 假设 tokenUserId 为0
 	if err != nil {
 		// 处理错误或记录日志
 	}
