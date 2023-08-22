@@ -34,8 +34,10 @@ type RedisClients struct {
 	VideoId_CommentIdR *redis.Client
 	CommentId_CommentR *redis.Client
 	//F : favorite
-	UserId_FavoriteVideoIdR *redis.Client
-	VideoId_VideoR          *redis.Client
+	UserId_FavoriteVideoIdR  *redis.Client
+	VideoId_FavoritebUserIdR *redis.Client //todo 用视频ID作为键，存储的是点赞这个视频的所有用户ID。
+
+	VideoId_VideoR *redis.Client
 	//点赞数 和 被点赞数
 	//获赞数：value 对应 total_favorited（前端返回值
 	//此方法已经 deprecated 了，不再使用
@@ -50,6 +52,11 @@ type RedisClients struct {
 	UserId_FollowingsR  *redis.Client
 	UserId_FriendsR     *redis.Client
 }
+
+//    获取用户的所有点赞视频：只需查询 UserId_FavoriteVideoIdR 集合。
+//    获取点赞某视频的所有用户：只需查询 RdbVUid 集合。
+//    检查用户是否点赞了某个视频：查询 UserId_FavoriteVideoIdR 集合中用户ID对应的集合是否包含该视频ID。
+//    检查某个视频是否被用户点赞：查询 RdbVUid 集合中视频ID对应的集合是否包含该用户ID。
 
 const (
 	ProdRedisAddr = config.RedisAddr
@@ -235,7 +242,7 @@ func GetKeysAndUpdateExpiration(client *redis.Client, pattern string) (interface
 	for i, key := range keys {
 		val, ok := values[i].(string)
 		if !ok {
-			MRLock.Unlock()
+			//MRLock.Unlock()
 			return nil, errors.New("value is not of type string")
 		}
 		results[key] = val
@@ -286,6 +293,21 @@ func IsKeyExist(client *redis.Client, key string) (bool, error) {
 	return isExist == 1, nil
 }
 
+// CountElements 获取与给定键关联的 Redis 集合的元素数量
+func CountElements(client *redis.Client, key string) (int, error) {
+	if client == nil {
+		return 0, errors.New("客户端为空")
+	}
+
+	count, err := client.SCard(Ctx, key).Result()
+	if err != nil {
+		log.Printf("获取 Redis 集合元素数量失败: %v\n", err)
+		return 0, err
+	}
+
+	return int(count), nil
+}
+
 // GetValue 获取 Redis 中的值（常规）
 func GetValue(client *redis.Client, key string) (string, error) {
 	if client == nil {
@@ -301,41 +323,4 @@ func SetValue(client *redis.Client, key string, value interface{}) error {
 	}
 	// 设置 2 min 过期，如果 expiration 为 0 表示永不过期
 	return client.Set(Ctx, key, value, 2*time.Minute).Err()
-}
-
-func testRedis() {
-	// 初始化 Redis 连接
-	InitRedis()
-
-	// 使用 Redis 客户端
-	key := "my-key"
-	err := SetValue(Clients.Test, key, "my-value")
-	if err != nil {
-		log.Printf("Error setting value: %v", err)
-	}
-
-	value, err := GetValue(Clients.Test, key)
-	if err != nil {
-		log.Printf("Error getting value: %v", err)
-	} else {
-		log.Printf("Value is: %s", value)
-	}
-
-	// 通过 SetValueWithRandomExp 设置 Redis 键值对，过期时间随机
-	SetValueWithRandomExp(Clients.Test, key, "my-value")
-
-	// 通过 GetKeysAndUpdateExpiration 获取 Redis 中的值，并更新（膨胀）过期时间
-	valueInterface, err := GetKeysAndUpdateExpiration(Clients.Test, key)
-	if err != nil {
-		log.Printf("Error getting value: %v", err)
-	} else {
-		log.Printf("Value is: %s", value)
-	}
-
-	value, ok := valueInterface.(string)
-	if !ok {
-		log.Printf("Value is not of type string")
-	} else {
-		log.Printf("Value is: %s", value)
-	}
 }

@@ -14,11 +14,31 @@ import (
 type MessageHandler func(string)
 
 func AddComment(msg string) {
-	fmt.Println("Adding comment:", msg)
+	comment := dao.CommentDao{}
+	err := json.Unmarshal([]byte(msg), &comment)
+	if err != nil {
+		log.Println("Failed to unmarshal comment:", err)
+		return
+	}
+
+	_, err = dao.AddComment(comment)
+	if err != nil {
+		log.Println("Failed to add comment to the database:", err)
+	}
 }
 
 func DeleteComment(msg string) {
-	fmt.Println("Deleting comment:", msg)
+	var commentId int64
+	err := json.Unmarshal([]byte(msg), &commentId)
+	if err != nil {
+		log.Println("Failed to unmarshal commentId:", err)
+		return
+	}
+
+	err = dao.DeleteComment(commentId)
+	if err != nil {
+		log.Println("Failed to delete comment from the database:", err)
+	}
 }
 
 func AddLike(body string) {
