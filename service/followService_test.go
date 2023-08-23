@@ -58,9 +58,10 @@ func TestFollowServiceImp_CheckIsFollowing(t *testing.T) {
 
 func TestFollowServiceImp_FollowAction(t *testing.T) {
 	redis.InitRedis()
-	result, err := followServiceImp.FollowAction(1, 16)
+	result, err := followServiceImp.FollowAction(1, 4)
 	if err != nil {
 		log.Default()
+		fmt.Println("11")
 	}
 	fmt.Println(result)
 }
