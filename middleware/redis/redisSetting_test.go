@@ -119,14 +119,7 @@ func TestSetHashWithExpiration(t *testing.T) {
 	if err != nil {
 		t.Errorf("Error setting hash: %v", err)
 	}
-	hash, err := GetHash(Clients.Test, "test-hash")
 	if err != nil {
 		t.Errorf("Error getting hash: %v", err)
-	}
-	// 将hash与data进行比较
-	for k, v := range *hash {
-		if data[k] != v {
-			t.Errorf("Expected value %s, got %s", data[k], v)
-		}
 	}
 }

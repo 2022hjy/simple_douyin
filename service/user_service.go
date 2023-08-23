@@ -7,16 +7,13 @@ import (
 	"sync"
 
 	"simple_douyin/config"
-	"simple_douyin/middleware/redis"
-
-	redisv9 "github.com/redis/go-redis/v9"
 	"simple_douyin/dao"
+	"simple_douyin/middleware/redis"
 	"simple_douyin/util"
 )
 
 type UserService struct {
-	userDao         *dao.UserDao
-	redisUserFollow *redisv9.Client
+	userDao *dao.UserDao
 }
 
 var (
@@ -29,7 +26,6 @@ func NewUserServiceInstance() *UserService {
 		func() {
 			userService = &UserService{}
 			userService.userDao = dao.NewUserDaoInstance()
-			//userService.redisUserFollow = redis.Clients.UserFollowings
 		})
 	return userService
 }
@@ -138,12 +134,10 @@ type QueryUserInfoFlow struct {
 }
 
 func (f *QueryUserInfoFlow) Do() (*UserInfo, error) {
-	err := f.prepareInfo()
-	if err != nil {
+	if err := f.prepareInfo(); err != nil {
 		return nil, err
 	}
-	err = f.packageInfo()
-	if err != nil {
+	if err := f.packageInfo(); err != nil {
 		return nil, err
 	}
 	return f.userInfo, nil
@@ -155,19 +149,23 @@ func (f *QueryUserInfoFlow) prepareInfo() error {
 	errChan := make(chan error, 2)
 	go func() {
 		defer wg.Done()
+		userDao := dao.NewUserDaoInstance()
 		// 1. 先从redis中获取用户信息
-		//user, err := getUserFromRedisByUserId(f.userId)
-		//if err == nil {
-		//	f.user = user
-		//	return
-		//}
+		if user, err := userDao.GetUserFromRedisById(f.userId); err == nil {
+			f.user = user
+			return
+		}
+		// todo 日志记录一下为什么从redis中获取失败
 		// 2. 如果redis中没有，则从数据库中获取
-		user, err := dao.NewUserDaoInstance().GetUserById(f.userId)
+		user, err := userDao.GetUserById(f.userId)
 		if err != nil {
 			errChan <- err
+			return
 		}
-		// 3. 将用户信息写入到redis中
-
+		// 3. 将用户信息写入到redis中，即使写入失败，也不影响后续的流程
+		if err = userDao.SetUserToRedis(user); err != nil {
+			// todo 日志记录一下为什么写入redis失败，并且需要设置一个过期时间，或者直接就不过期
+		}
 		f.user = user
 	}()
 	go func() {
@@ -178,13 +176,16 @@ func (f *QueryUserInfoFlow) prepareInfo() error {
 		if err == nil {
 			f.followerCount = followCount
 		}
+		// todo 日志记录一下为什么获取关注数失败
 		followingCount, err := followService.GetFollowingCnt(f.userId)
 		if err == nil {
 			f.followCount = followingCount
 		}
+		// todo 日志记录一下为什么获取粉丝数失败
 		isFollow, err := followService.CheckIsFollowing(f.userId, f.tokenUserId)
 		if err != nil {
 			errChan <- err
+			return
 		}
 		f.isFollow = isFollow
 	}()
@@ -192,7 +193,12 @@ func (f *QueryUserInfoFlow) prepareInfo() error {
 		defer wg.Done()
 		f.totalFavorited = 0
 		f.favoriteCount = 0
-		f.workCount = 0
+		videoService := GetVideoServiceInstance()
+		workCnt, err := videoService.GetVideoCnt(f.userId)
+		if err != nil {
+			// todo 日志记录一下为什么获取作品数失败
+		}
+		f.workCount = workCnt
 	}()
 	wg.Wait()
 	select {

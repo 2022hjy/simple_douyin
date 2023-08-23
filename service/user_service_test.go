@@ -3,13 +3,9 @@ package service
 import (
 	"encoding/json"
 	"testing"
-
-	"simple_douyin/middleware/database"
-	"simple_douyin/middleware/redis"
 )
 
 func TestLogin(t *testing.T) {
-	database.Init()
 	req := LoginInfo{
 		UserName: "guest",
 		Password: "guest",
@@ -29,8 +25,13 @@ func TestRegister(t *testing.T) {
 
 }
 
-func TestGetUserInfo(t *testing.T) {
-	database.Init()
-	redis.InitRedis()
-
+func TestUserService_QuerySelfInfo(t *testing.T) {
+	testService := NewUserServiceInstance()
+	res, err := testService.QuerySelfInfo(1)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	resJson, _ := json.Marshal(res)
+	t.Log(string(resJson))
 }

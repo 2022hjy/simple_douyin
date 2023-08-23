@@ -8,15 +8,15 @@ import (
 	"sync"
 	"time"
 
-	"github.com/redis/go-redis/v9"
+	redisv9 "github.com/redis/go-redis/v9"
 	"simple_douyin/config"
 )
 
-// Ctx Path: middleware/redis/redis.go
+// Ctx Path: middleware/redis/redisv9.go
 var Ctx = context.Background()
 
-// NilError redis.Nil 的别名
-var NilError = redis.Nil
+// NilError redisv9.Nil 的别名
+var NilError = redisv9.Nil
 
 // keyAccessMap 用于记录 key 的访问次数
 var keyAccessMap = make(map[string]int)
@@ -30,28 +30,28 @@ var MRLock = &sync.Mutex{}
 // RedisClients redis 客户端
 // 命名规则：[Key]_[Val]R
 type RedisClients struct {
-	Test               *redis.Client
-	VideoId_CommentIdR *redis.Client
-	CommentId_CommentR *redis.Client
+	Test               *redisv9.Client
+	VideoId_CommentIdR *redisv9.Client
+	CommentId_CommentR *redisv9.Client
 	//F : favorite
-	UserId_FavoriteVideoIdR  *redis.Client
-	VideoId_FavoritebUserIdR *redis.Client //todo 用视频ID作为键，存储的是点赞这个视频的所有用户ID。
+	UserId_FavoriteVideoIdR  *redisv9.Client
+	VideoId_FavoritebUserIdR *redisv9.Client //todo 用视频ID作为键，存储的是点赞这个视频的所有用户ID。
 
-	VideoId_VideoR *redis.Client
+	VideoId_VideoR *redisv9.Client
 	//点赞数 和 被点赞数
 	//获赞数：value 对应 total_favorited（前端返回值
 	//此方法已经 deprecated 了，不再使用
 	//只是为了给大家提个醒，现在的使用的思路是使用上面的UserId_FavoriteVideoIdR的 redis
 	//：直接通过获取的关联的 id 集合，从而去获得对应的点赞的视频数目（len 方法去获取长度）
-	//UserId_FavoritedNumR *redis.Client
+	//UserId_FavoritedNumR *redisv9.Client
 
 	//（给别人的）点赞数：value 对应 favorite_count （前端返回值
-	UserId_FavoriteNumR *redis.Client
-	UserId_UserR        *redis.Client
-	UserId_FollowersR   *redis.Client
-	UserId_FollowingsR  *redis.Client
-	UserId_FriendsR     *redis.Client
-	UserAllId_MessageR  *redis.Client
+	UserId_FavoriteNumR *redisv9.Client
+	UserId_UserR        *redisv9.Client
+	UserId_FollowersR   *redisv9.Client
+	UserId_FollowingsR  *redisv9.Client
+	UserId_FriendsR     *redisv9.Client
+	UserAllId_MessageR  *redisv9.Client
 }
 
 //    获取用户的所有点赞视频：只需查询 UserId_FavoriteVideoIdR 集合。
@@ -64,55 +64,59 @@ const (
 	ProRedisPwd   = config.RedisPwd
 )
 
+func init() {
+	InitRedis()
+}
+
 // InitRedis 初始化 Redis 连接
 func InitRedis() {
 	Clients = &RedisClients{
-		Test: redis.NewClient(&redis.Options{
+		Test: redisv9.NewClient(&redisv9.Options{
 			Addr:     ProdRedisAddr,
 			Password: ProRedisPwd,
 			DB:       0,
 		}),
-		VideoId_CommentIdR: redis.NewClient(&redis.Options{
+		VideoId_CommentIdR: redisv9.NewClient(&redisv9.Options{
 			Addr:     ProdRedisAddr,
 			Password: ProRedisPwd,
 			DB:       1,
 		}),
-		//CVid: redis.NewClient(&redis.Options{
+		//CVid: redisv9.NewClient(&redisv9.Options{
 		//	Addr:     ProdRedisAddr,
 		//	Password: ProRedisPwd,
 		//	DB:       2,
 		//}),
-		CommentId_CommentR: redis.NewClient(&redis.Options{
+		CommentId_CommentR: redisv9.NewClient(&redisv9.Options{
 			Addr:     ProdRedisAddr,
 			Password: ProRedisPwd,
 			DB:       3,
 		}),
-		UserId_FavoriteVideoIdR: redis.NewClient(&redis.Options{
+		UserId_FavoriteVideoIdR: redisv9.NewClient(&redisv9.Options{
 			Addr:     ProdRedisAddr,
 			Password: ProRedisPwd,
 			DB:       4,
 		}),
-		UserId_UserR: redis.NewClient(&redis.Options{
+		UserId_UserR: redisv9.NewClient(&redisv9.Options{
 			Addr:     ProdRedisAddr,
 			Password: ProRedisPwd,
 			DB:       5,
 		}),
-		UserId_FollowingsR: redis.NewClient(&redis.Options{
+		UserId_FollowingsR: redisv9.NewClient(&redisv9.Options{
 			Addr:     ProdRedisAddr,
 			Password: ProRedisPwd,
 			DB:       11,
 		}),
-		UserId_FollowersR: redis.NewClient(&redis.Options{
+		UserId_FollowersR: redisv9.NewClient(&redisv9.Options{
 			Addr:     ProdRedisAddr,
 			Password: ProRedisPwd,
 			DB:       12,
 		}),
-		UserId_FriendsR: redis.NewClient(&redis.Options{
+		UserId_FriendsR: redisv9.NewClient(&redisv9.Options{
 			Addr:     ProdRedisAddr,
 			Password: ProRedisPwd,
 			DB:       13,
 		}),
-		VideoId_VideoR: redis.NewClient(&redis.Options{
+		VideoId_VideoR: redisv9.NewClient(&redisv9.Options{
 			Addr:     ProdRedisAddr,
 			Password: ProRedisPwd,
 			DB:       14,
@@ -128,7 +132,7 @@ func InitRedis() {
 */
 
 // SetValueWithRandomExp 设置 Redis 集合的批量添加，采取过期时间随机
-func SetValueWithRandomExp(client *redis.Client, key string, value interface{}) error {
+func SetValueWithRandomExp(client *redisv9.Client, key string, value interface{}) error {
 	if client == nil {
 		return errors.New("client is nil")
 	}
@@ -143,7 +147,7 @@ func SetValueWithRandomExp(client *redis.Client, key string, value interface{}) 
 }
 
 // SetHashWithExpiration 设置 Redis 哈希表，并设置过期时间
-func SetHashWithExpiration(client *redis.Client, key string, data map[string]interface{}, exp time.Duration) error {
+func SetHashWithExpiration(client *redisv9.Client, key string, data map[string]interface{}, exp time.Duration) error {
 	SetErr := SetHash(client, key, data)
 	if SetErr != nil {
 		return SetErr
@@ -151,20 +155,8 @@ func SetHashWithExpiration(client *redis.Client, key string, data map[string]int
 	return SetExpiration(client, key, exp)
 }
 
-// SetHash 设置 Redis 哈希表
-func SetHash(client *redis.Client, key string, data map[string]interface{}) error {
-	if client == nil {
-		return errors.New("client is nil")
-	}
-	SetErr := client.HMSet(Ctx, key, data).Err()
-	if SetErr != nil {
-		log.Fatalf("redis set error: %v\n", SetErr)
-	}
-	return SetErr
-}
-
 // SetExpiration 设置 Redis 键值对的过期时间
-func SetExpiration(client *redis.Client, key string, exp time.Duration) error {
+func SetExpiration(client *redisv9.Client, key string, exp time.Duration) error {
 	if client == nil {
 		return errors.New("client is nil")
 	}
@@ -176,16 +168,69 @@ func SetExpiration(client *redis.Client, key string, exp time.Duration) error {
 }
 
 // GetHash 获取 Redis Hash结构
-func GetHash(client *redis.Client, key string) (*map[string]string, error) {
+// 参数client 为 redis 客户端，key 为键，data 为存储数据的结构体的指针
+func GetHash(client *redisv9.Client, key string, dataPtr interface{}) error {
 	if client == nil {
-		return nil, errors.New("client is nil")
+		return errors.New("client is nil")
 	}
-	result, err := client.HGetAll(Ctx, key).Result()
+	// 1. 首先判断键是否存在
+	isExist, err := client.Exists(Ctx, key).Result()
 	if err != nil {
-		log.Fatalf("redis set error: %v\n", err)
-		return nil, err
+		return err
 	}
-	return &result, nil
+	if isExist == 0 {
+		return errors.New("key does not exist")
+	}
+	if err := client.HGetAll(Ctx, key).Scan(dataPtr); err != nil {
+		return err
+	}
+	return nil
+}
+
+// SetHash 设置 Redis 哈希表
+func SetHash(client *redisv9.Client, key string, data interface{}) error {
+	if client == nil {
+		return errors.New("client is nil")
+	}
+	if SetErr := client.HSet(Ctx, key, data).Err(); SetErr != nil {
+		log.Fatalf("redis set hash error: %v\n", SetErr)
+		return SetErr
+	}
+	return nil
+}
+
+type HotData struct {
+	ExpireTime time.Time
+	Data       interface{}
+}
+
+func SetHashWithLogic(client *redisv9.Client, key string, data interface{}, exp time.Duration) error {
+	if client == nil {
+		return errors.New("client is nil")
+	}
+	hotData := &HotData{
+		ExpireTime: time.Now().Add(exp),
+		Data:       data,
+	}
+	if err := SetHash(client, key, hotData); err != nil {
+		return err
+	}
+	return nil
+}
+
+func GetHashWithLogic(client *redisv9.Client, key string, dataPtr interface{}) error {
+	if client == nil {
+		return errors.New("client is nil")
+	}
+	hotData := &HotData{}
+	if err := GetHash(client, key, hotData); err != nil {
+		return err
+	}
+	if hotData.ExpireTime.Before(time.Now()) {
+		return errors.New("data expired")
+	}
+	dataPtr = hotData.Data
+	return nil
 }
 
 /*
@@ -199,10 +244,10 @@ addErr := client.SAdd(Ctx, key, value, exp).Err()
 */
 
 // Deprecate： GetKeyAndUpdateExpiration 获取 Redis 中的值，并更新（膨胀）过期时间
-//func GetKeyAndUpdateExpiration(client *redis.Client, key string) (interface{}, error) {
+//func GetKeyAndUpdateExpiration(client *redisv9.Client, key string) (interface{}, error) {
 //	val, err := client.Get(Ctx, key).Result()
 //	if err != nil {
-//		if err == redis.Nil {
+//		if err == redisv9.Nil {
 //			// 缓存穿透，将空数据缓存一段时间，防止缓存穿透
 //			SetValueWithRandomExp(client, key, "")
 //			//SetValueWithRandomExp(client, key, "nil")
@@ -227,7 +272,7 @@ addErr := client.SAdd(Ctx, key, value, exp).Err()
 
 // GetKeysAndUpdateExpiration 获取与给定模式匹配的所有Redis中的值，并更新（膨胀）它们的过期时间，支持返回一对一，一对多的键值对
 // 该函数返回一个interface，因此需要在使用的时候使用类型断言
-func GetKeysAndUpdateExpiration(client *redis.Client, pattern string) (interface{}, error) {
+func GetKeysAndUpdateExpiration(client *redisv9.Client, pattern string) (interface{}, error) {
 	keys, err := client.Keys(Ctx, pattern).Result()
 	if err != nil {
 		return nil, err
@@ -273,7 +318,7 @@ func GetKeysAndUpdateExpiration(client *redis.Client, pattern string) (interface
 }
 
 // DeleteKey 删除 Redis 中的键值对，线程安全
-func DeleteKey(client *redis.Client, key string) error {
+func DeleteKey(client *redisv9.Client, key string) error {
 	if client == nil {
 		return errors.New("client is nil")
 	}
@@ -286,7 +331,7 @@ func DeleteKey(client *redis.Client, key string) error {
 // IsKeyExist 判断 Redis 中是否存在某个键
 // 返回值：bool，error。如果存在，返回 true，nil；
 // 如果不存在，返回 false，nil；如果出错，返回 false，error
-func IsKeyExist(client *redis.Client, key string) (bool, error) {
+func IsKeyExist(client *redisv9.Client, key string) (bool, error) {
 	if client == nil {
 		return false, errors.New("client is nil")
 	}
@@ -300,7 +345,7 @@ func IsKeyExist(client *redis.Client, key string) (bool, error) {
 }
 
 // CountElements 获取与给定键关联的 Redis 集合的元素数量
-func CountElements(client *redis.Client, key string) (int, error) {
+func CountElements(client *redisv9.Client, key string) (int, error) {
 	if client == nil {
 		return 0, errors.New("客户端为空")
 	}
@@ -315,7 +360,7 @@ func CountElements(client *redis.Client, key string) (int, error) {
 }
 
 // GetValue 获取 Redis 中的值（常规）
-func GetValue(client *redis.Client, key string) (string, error) {
+func GetValue(client *redisv9.Client, key string) (string, error) {
 	if client == nil {
 		return "", errors.New("client is nil")
 	}
@@ -323,7 +368,7 @@ func GetValue(client *redis.Client, key string) (string, error) {
 }
 
 // SetValue 设置 Redis 键值对
-func SetValue(client *redis.Client, key string, value interface{}) error {
+func SetValue(client *redisv9.Client, key string, value interface{}) error {
 	if client == nil {
 		return errors.New("client is nil")
 	}

@@ -1,21 +1,25 @@
 package dao
 
 import (
+	"fmt"
 	"sync"
 
+	redisv9 "github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
+	"simple_douyin/config"
 	"simple_douyin/middleware/database"
+	"simple_douyin/middleware/redis"
 )
 
 var Db = database.Db
 
 type User struct {
-	UserId          int64  `json:"id" gorm:"primaryKey;autoIncrement:true"`
-	Username        string `json:"name" gorm:"unique;not null"`
-	Password        string `json:"-"` // 不返回给前端
-	Avatar          string `json:"avatar,omitempty" gorm:"default:''"`
-	BackgroundImage string `json:"background_image,omitempty" gorm:"default:''"`
-	Signature       string `json:"signature,omitempty" gorm:"default:''"`
+	UserId          int64  `json:"id" gorm:"primaryKey;autoIncrement:true" redis:"user_id"`
+	Username        string `json:"name" gorm:"unique;not null" redis:"username"`
+	Password        string `json:"-" redis:"-"` // 不返回给前端
+	Avatar          string `json:"avatar,omitempty" gorm:"default:''" redis:"avatar"`
+	BackgroundImage string `json:"background_image,omitempty" gorm:"default:''" redis:"background_image"`
+	Signature       string `json:"signature,omitempty" gorm:"default:''" redis:"signature"`
 }
 
 func (User) TableName() string {
@@ -23,7 +27,8 @@ func (User) TableName() string {
 }
 
 type UserDao struct {
-	db *gorm.DB
+	db          *gorm.DB
+	redisClient *redisv9.Client
 }
 
 var (
@@ -36,6 +41,7 @@ func NewUserDaoInstance() *UserDao {
 		func() {
 			userDao = &UserDao{}
 			userDao.db = database.Db
+			userDao.redisClient = redis.Clients.UserId_UserR
 		})
 	return userDao
 }
@@ -76,4 +82,21 @@ func (u *UserDao) UpdateUser(user *User) bool {
 		return false
 	}
 	return true
+}
+
+func (u *UserDao) GetUserFromRedisById(userId int64) (*User, error) {
+	key := fmt.Sprintf("%s:%d", config.UserId_User_KEY_PREFIX, userId)
+	var user User
+	if err := redis.GetHash(u.redisClient, key, &user); err != nil {
+		return nil, err
+	}
+	return &user, nil
+}
+
+func (u *UserDao) SetUserToRedis(user *User) error {
+	key := fmt.Sprintf("%s:%d", config.UserId_User_KEY_PREFIX, user.UserId)
+	if err := redis.SetHash(u.redisClient, key, user); err != nil {
+		return err
+	}
+	return nil
 }
