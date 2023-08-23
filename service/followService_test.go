@@ -49,6 +49,7 @@ func TestFollowServiceImp_GetFollowerCnt(t *testing.T) {
 
 func TestFollowServiceImp_CheckIsFollowing(t *testing.T) {
 	redis.InitRedis()
+	var err error
 	result, err := followServiceImp.CheckIsFollowing(1, 5)
 	if err != nil {
 		log.Default()
