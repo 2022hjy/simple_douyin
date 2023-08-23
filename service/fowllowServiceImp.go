@@ -5,7 +5,6 @@ import (
 	"log"
 	"math/rand"
 	"simple_douyin/config"
-	"simple_douyin/controller"
 	"simple_douyin/dao"
 	"simple_douyin/middleware/mq"
 	"simple_douyin/middleware/redis"
@@ -123,7 +122,7 @@ func (followService *FollowServiceImp) CancelFollowAction(userId int64, targetId
 */
 
 // GetFollowings 获取正在关注的用户详情列表业务
-func (followService *FollowServiceImp) GetFollowings(userId int64) ([]controller.UserResponse, error) {
+func (followService *FollowServiceImp) GetFollowings(userId int64) ([]dao.Userfollow, error) {
 	// 调用集成redis的关注用户获取接口获取关注用户id和关注用户数量
 	userFollowingsId, userFollowingsCnt, err := GetFollowingsByRedis(userId)
 	if nil != err {
@@ -131,7 +130,7 @@ func (followService *FollowServiceImp) GetFollowings(userId int64) ([]controller
 	}
 
 	// 根据关注用户数量创建空用户结构体数组
-	userFollowings := make([]controller.UserResponse, userFollowingsCnt)
+	userFollowings := make([]dao.Userfollow, userFollowingsCnt)
 
 	// 传入buildtype调用用户构建函数构建关注用户数组
 	err1 := followService.BuildUser(userId, userFollowings, userFollowingsId, 0)
@@ -203,7 +202,7 @@ func GetFollowersByRedis(userId int64) ([]int64, int64, error) {
 }
 
 // GetFollowers 获取粉丝详情列表业务
-func (followService *FollowServiceImp) GetFollowers(userId int64) ([]controller.UserResponse, error) {
+func (followService *FollowServiceImp) GetFollowers(userId int64) ([]dao.Userfollow, error) {
 	// 调用集成redis的粉丝获取接口获取粉丝id和粉丝数量
 	userFollowersId, userFollowersCnt, err := GetFollowersByRedis(userId)
 
@@ -212,7 +211,7 @@ func (followService *FollowServiceImp) GetFollowers(userId int64) ([]controller.
 	}
 
 	// 根据粉丝数量创建空用户结构体数组
-	userFollowers := make([]controller.UserResponse, userFollowersCnt)
+	userFollowers := make([]dao.Userfollow, userFollowersCnt)
 
 	// 传入buildtype调用用户构建函数构建粉丝数组
 	err1 := followService.BuildUser(userId, userFollowers, userFollowersId, 1)
@@ -259,7 +258,7 @@ func GetFriendsByRedis(userId int64) ([]int64, int64, error) {
 }
 
 // GetFriends 获取用户好友列表（附带与其最新聊天记录）
-func (followService *FollowServiceImp) GetFriends(userId int64) ([]controller.FriendUser, error) {
+func (followService *FollowServiceImp) GetFriends(userId int64) ([]dao.FriendUser, error) {
 	// 调用集成redis的好友获取接口获取好友id和好友数量
 	userFriendId, userFriendCnt, err := GetFriendsByRedis(userId)
 
@@ -268,7 +267,7 @@ func (followService *FollowServiceImp) GetFriends(userId int64) ([]controller.Fr
 	}
 
 	// 使用好友数量创建空好友结构体数组
-	userFriends := make([]controller.FriendUser, userFriendCnt)
+	userFriends := make([]dao.FriendUser, userFriendCnt)
 
 	// 调用好友构建函数构建好友数组
 	err1 := followService.BuildFriendUser(userId, userFriends, userFriendId)
@@ -281,7 +280,7 @@ func (followService *FollowServiceImp) GetFriends(userId int64) ([]controller.Fr
 }
 
 // BuildFriendUser 根据传入的id列表和空frienduser数组，构建业务所需frienduser数组并返回
-func (followService *FollowServiceImp) BuildFriendUser(userId int64, friendUsers []controller.FriendUser, ids []int64) error {
+func (followService *FollowServiceImp) BuildFriendUser(userId int64, friendUsers []dao.FriendUser, ids []int64) error {
 
 	msi := messageServiceImpl
 	followDao := dao.NewFollowDaoInstance()
@@ -290,11 +289,11 @@ func (followService *FollowServiceImp) BuildFriendUser(userId int64, friendUsers
 	for i := 0; i < len(ids); i++ {
 
 		// 好友id赋值
-		friendUsers[i].Id = ids[i]
+		friendUsers[i].UserId = ids[i]
 
 		// 好友name赋值
 		var err1 error
-		friendUsers[i].Name, err1 = followDao.GetUserName(ids[i])
+		friendUsers[i].Username, err1 = followDao.GetUserName(ids[i])
 		if nil != err1 {
 			log.Println(err1)
 			return err1
@@ -343,18 +342,18 @@ func (followService *FollowServiceImp) BuildFriendUser(userId int64, friendUsers
 */
 
 // BuildUser 根据传入的id列表和空user数组，构建业务所需user数组并返回
-func (followService *FollowServiceImp) BuildUser(userId int64, users []controller.UserResponse, ids []int64, buildtype int) error {
+func (followService *FollowServiceImp) BuildUser(userId int64, users []dao.Userfollow, ids []int64, buildtype int) error {
 	folowDao := dao.NewFollowDaoInstance()
 
 	// 遍历传入的用户id，组成user结构体
 	for i := 0; i < len(ids); i++ {
 
 		// 用户id赋值
-		users[i].Id = ids[i]
+		users[i].UserId = ids[i]
 
 		// 用户name赋值
 		var err1 error
-		users[i].Name, err1 = folowDao.GetUserName(ids[i])
+		users[i].Username, err1 = folowDao.GetUserName(ids[i])
 		if nil != err1 {
 			log.Println(err1)
 			return err1
