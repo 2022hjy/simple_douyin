@@ -7,6 +7,19 @@ import (
 	"time"
 )
 
+type Userfollow struct {
+	User
+
+	FollowCount   int64 `json:"follow_count,omitempty"`
+	FollowerCount int64 `json:"follower_count,omitempty"`
+	IsFollow      bool  `json:"is_follow,omitempty"`
+}
+type FriendUser struct {
+	Userfollow
+	Avatar  string `json:"avatar"`
+	Message string `json:"message,omitempty"`
+	MsgType int64  `json:"msg_type"`
+}
 type Follow struct {
 	Id          int64  //关系ID
 	UserId      int64  //用户ID
