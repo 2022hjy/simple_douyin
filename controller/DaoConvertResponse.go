@@ -1,7 +1,6 @@
-package util
+package controller
 
 import (
-	"simple_douyin/controller"
 	"simple_douyin/dao"
 	"simple_douyin/service"
 	"strconv"
@@ -28,17 +27,17 @@ import (
 
 // ConvertDBVideoToResponse 将数据库中的视频信息转换为响应的视频信息
 // tips: 这里的User是controller.UserResponse类型，不是dao.UserDAO类型！！！
-func ConvertDBVideoToResponse(dbVideo dao.Video, tokenId int64) (controller.VideoResponse, error) {
+func ConvertDBVideoToResponse(dbVideo dao.Video, tokenId int64) (VideoResponse, error) {
 	userService := service.NewUserServiceInstance()
 
 	// 使用 QueryUserInfo 获取视频作者的信息
 	userInfo, err := userService.QueryUserInfo(dbVideo.UserInfoId, tokenId) // 假设 tokenUserId 为0
 	if err != nil {
-		return controller.VideoResponse{}, err
+		return VideoResponse{}, err
 	}
 
 	// 将 UserInfo 转换为 UserResponse
-	userResponse := controller.UserResponse{
+	userResponse := UserResponse{
 		Id:              userInfo.User.UserId,
 		Name:            userInfo.User.Username,
 		FollowCount:     userInfo.FollowCount,
@@ -59,7 +58,7 @@ func ConvertDBVideoToResponse(dbVideo dao.Video, tokenId int64) (controller.Vide
 		isFavorite = false
 	}
 
-	return controller.VideoResponse{
+	return VideoResponse{
 		Id:            dbVideo.Id,
 		Author:        userResponse,
 		PlayUrl:       dbVideo.PlayUrl,
@@ -82,7 +81,7 @@ func ConvertDBVideoToResponse(dbVideo dao.Video, tokenId int64) (controller.Vide
 //	}
 //}
 
-func ConvertDBCommentToResponse(comment dao.CommentDao, tokenId int64) controller.CommentResponse {
+func ConvertDBCommentToResponse(comment dao.CommentDao, tokenId int64) CommentResponse {
 	userService := service.NewUserServiceInstance()
 
 	// 使用 QueryUserInfo 获取用户信息
@@ -92,7 +91,7 @@ func ConvertDBCommentToResponse(comment dao.CommentDao, tokenId int64) controlle
 	}
 
 	// 将 UserInfo 转换为 UserResponse
-	userResponse := controller.UserResponse{
+	userResponse := UserResponse{
 		Id:              userInfo.User.UserId,
 		Name:            userInfo.User.Username,
 		FollowCount:     userInfo.FollowCount,
@@ -108,7 +107,7 @@ func ConvertDBCommentToResponse(comment dao.CommentDao, tokenId int64) controlle
 
 	// Convert time.Time to string
 	createDate := comment.CreatedAt.Format(time.RFC3339)
-	return controller.CommentResponse{
+	return CommentResponse{
 		Id:         comment.Id,
 		User:       userResponse,
 		Content:    comment.Content,

@@ -4,7 +4,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"simple_douyin/service"
-	"simple_douyin/util"
 	"strconv"
 )
 
@@ -60,7 +59,7 @@ func CommentAction(c *gin.Context) {
 	case actionType == ADD_COMMENT:
 		content := c.Query("comment_text")
 		commentRes, err := commentService.Comment(userId, videoId, content)
-		var commentResponse = util.ConvertDBCommentToResponse(commentRes, userId)
+		var commentResponse = ConvertDBCommentToResponse(commentRes, userId)
 		//评论操作时
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, CommentActionResponse{
@@ -128,7 +127,7 @@ func CommentList(c *gin.Context) {
 			//todo 获得FavoriteCount int64, FollowCount int64, FollowerCount int64, IsFollow bool, TotalFavorited string, WorkCount int64
 			UserResponse := util.ConvertDBUserToResponse(UserDao)
 		*/
-		commentResponseList[i] = util.ConvertDBCommentToResponse(comment, token)
+		commentResponseList[i] = ConvertDBCommentToResponse(comment, token)
 		commentResponseList = append(commentResponseList, commentResponseList[i])
 	}
 

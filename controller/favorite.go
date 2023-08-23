@@ -5,7 +5,6 @@ import (
 	"log"
 	"net/http"
 	"simple_douyin/service"
-	"simple_douyin/util"
 	"strconv"
 )
 
@@ -69,7 +68,7 @@ func FavoriteList(c *gin.Context, service service.FavoriteService) {
 
 	var VideoResponseList []VideoResponse
 	for _, videoDao := range videoList {
-		videoResponse, err := util.ConvertDBVideoToResponse(videoDao, userId)
+		videoResponse, err := ConvertDBVideoToResponse(videoDao, userId)
 		if err != nil {
 			log.Printf("转换 videoDao 失败：%v", err)
 			c.JSON(http.StatusInternalServerError, ErrorResponse{StatusCode: "-1", StatusMsg: "获取收藏列表失败"})
