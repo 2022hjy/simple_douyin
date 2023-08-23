@@ -1,0 +1,33 @@
+version: '3'
+
+services:
+  mysql:
+    image: 'mysql:latest'
+    ports:
+      - 3306:3306
+    volumes:
+      - "./douyin.sql:/docker-entrypoint-initdb.d/1_douyin.sql"
+    environment:
+      - MYSQL_DATABASE=douyin
+      - MYSQL_USER=user
+      - MYSQL_PASSWORD=123
+      - MYSQL_RANDOM_ROOT_PASSWORD="yes"
+  redis:
+    image: 'redis'
+    ports:
+      - 6379:6379
+    volumes:
+      - ./redis.conf:/etc/redis/redis.conf
+    command: "redis-server /etc/redis/redis.conf"
+  simple_douyin:
+    build: 
+      context: .
+      dockerfile : ./Dockerfile
+    ports:
+     - "8080:8080"
+    volumes:
+      - ./wait-for.sh:/apps/wait-for.sh
+    depends_on:
+      - mysql
+      - redis
+    command: ["./wait-for.sh", "mysql:3306","--", "/apps/simple_douyin" ]
