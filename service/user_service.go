@@ -31,8 +31,8 @@ func NewUserServiceInstance() *UserService {
 }
 
 type LoginInfo struct {
-	UserName string
-	Password string
+	UserName string `json:"username"`
+	Password string `json:"password"`
 }
 
 type Credential struct {

@@ -15,6 +15,10 @@ var (
 	once sync.Once
 )
 
+func init() {
+	Init()
+}
+
 func Init() {
 	once.Do(func() {
 		initDb()

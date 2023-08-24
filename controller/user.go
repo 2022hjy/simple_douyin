@@ -24,18 +24,24 @@ type InfoResponse struct {
 func Register(c *gin.Context) {
 	var loginInfo service.LoginInfo
 
+	// 从查询字符串中获取参数
+	loginInfo.UserName = c.Query("username")
+	loginInfo.Password = c.Query("password")
+
 	// 1. 检验参数，如果不符合要求，返回错误信息
-	if err := c.ShouldBindJSON(&loginInfo); err != nil {
+	if loginInfo.UserName == "" || loginInfo.Password == "" {
 		c.JSON(http.StatusBadRequest,
-			Error(http.StatusBadRequest, "Invalid parameter"))
+			Error(http.StatusBadRequest, "Invalid parameter1"))
 		return
 	}
+
 	credential, err := userService.Register(loginInfo)
 	if err != nil {
 		c.JSON(http.StatusBadRequest,
 			Error(http.StatusBadRequest, err.Error()))
 		return
 	}
+
 	c.JSON(http.StatusOK, LoginResponse{
 		Response:   Success(),
 		Credential: credential,
