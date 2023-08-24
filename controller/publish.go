@@ -2,12 +2,13 @@ package controller
 
 import (
 	"fmt"
-	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
+	"strconv"
+
+	"github.com/gin-gonic/gin"
 	"simple_douyin/config"
 	"simple_douyin/service"
-	"strconv"
 )
 
 type VideoListResponse struct {
@@ -17,9 +18,7 @@ type VideoListResponse struct {
 
 // Publish 投稿视频
 func Publish(c *gin.Context) {
-	token := c.PostForm("token")
-	log.Println("token:", token)
-	userId := c.GetInt64("userId")
+	userId := c.GetInt64("token_user_id")
 	data, err := c.FormFile("data")
 	if err != nil {
 		c.JSON(http.StatusOK, Response{

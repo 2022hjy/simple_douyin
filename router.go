@@ -13,7 +13,7 @@ func InitRouter(apiRouter *gin.RouterGroup) *gin.RouterGroup {
 	r := gin.Default()
 	r.Static("/static", "./public")
 
-	r.GET("/feed/", jwt.AuthWithoutLogin(), controller.Feed)
+	apiRouter.GET("/feed/", jwt.AuthWithoutLogin(), controller.Feed)
 
 	// 用户相关路由
 	rUser := apiRouter.Group("/user")

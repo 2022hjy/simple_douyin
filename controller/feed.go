@@ -1,15 +1,16 @@
 package controller
 
 import (
-	"github.com/gin-gonic/gin"
 	"log"
 	"math"
 	"net/http"
+	"strconv"
+	"time"
+
+	"github.com/gin-gonic/gin"
 	"simple_douyin/config"
 	"simple_douyin/dao"
 	"simple_douyin/service"
-	"strconv"
-	"time"
 )
 
 func VideoRespondWithError(c *gin.Context, statusCode int32, errMsg string) {
@@ -45,7 +46,7 @@ func Feed(c *gin.Context) {
 	} else {
 		convTime = time.Now()
 	}
-	userId := c.GetInt64("userId")
+	userId := c.GetInt64("token_user_id")
 	plainVideos, nextTime, err := videoService.Feed(convTime)
 
 	douyinVideos := make([]VideoResponse, 0, config.VideoInitNumPerRefresh)

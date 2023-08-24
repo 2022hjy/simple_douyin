@@ -1,11 +1,12 @@
 package controller
 
 import (
-	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
-	"simple_douyin/service"
 	"strconv"
+
+	"github.com/gin-gonic/gin"
+	"simple_douyin/service"
 )
 
 // ErrorResponse VideoResponse 返回给 Controller 层的 VideoResponse 结构体
@@ -42,13 +43,13 @@ func FavoriteAction(c *gin.Context) {
 		return
 	}
 
-	if err := favoriteService.FavoriteAction(c.GetInt64("userId"), videoID); err != nil {
-		log.Printf("用户 %d 对视频 %d 的点赞操作失败：%v", c.GetInt64("userId"), videoID, err)
+	if err := favoriteService.FavoriteAction(c.GetInt64("token_user_id"), videoID); err != nil {
+		log.Printf("用户 %d 对视频 %d 的点赞操作失败：%v", c.GetInt64("token_user_id"), videoID, err)
 		c.JSON(http.StatusInternalServerError, ErrorResponse{StatusCode: "-1", StatusMsg: "收藏操作失败"})
 		return
 	}
 
-	log.Printf("用户 %d 成功点赞了视频 %d", c.GetInt64("userId"), videoID)
+	log.Printf("用户 %d 成功点赞了视频 %d", c.GetInt64("token_user_id"), videoID)
 	c.JSON(http.StatusOK, FavoriteActionResponse{Response{StatusCode: 0, StatusMsg: "收藏操作成功"}})
 }
 
