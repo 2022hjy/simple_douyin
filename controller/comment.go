@@ -1,10 +1,11 @@
 package controller
 
 import (
-	"github.com/gin-gonic/gin"
 	"net/http"
-	"simple_douyin/service"
 	"strconv"
+
+	"github.com/gin-gonic/gin"
+	"simple_douyin/service"
 )
 
 const (
@@ -101,7 +102,7 @@ func CommentAction(c *gin.Context) {
 
 func CommentList(c *gin.Context) {
 	videoId, err := strconv.ParseInt(c.Query("video_id"), 10, 64)
-	token, _ := strconv.ParseInt(c.Query("token_user_id"), 10, 64)
+	tokenUserId := c.GetInt64("token_user_id")
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, CommentListResponse{
 			Response: Response{StatusCode: -1, StatusMsg: "comment videoId json invalid"},
@@ -127,7 +128,7 @@ func CommentList(c *gin.Context) {
 			//todo 获得FavoriteCount int64, FollowCount int64, FollowerCount int64, IsFollow bool, TotalFavorited string, WorkCount int64
 			UserResponse := util.ConvertDBUserToResponse(UserDao)
 		*/
-		commentResponseList[i] = ConvertDBCommentToResponse(comment, token)
+		commentResponseList[i] = ConvertDBCommentToResponse(comment, tokenUserId)
 		commentResponseList = append(commentResponseList, commentResponseList[i])
 	}
 
