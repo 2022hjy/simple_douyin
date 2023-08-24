@@ -121,6 +121,11 @@ func InitRedis() {
 			Password: ProRedisPwd,
 			DB:       14,
 		}),
+		UserAllId_MessageR: redisv9.NewClient(&redisv9.Options{
+			Addr:     ProdRedisAddr,
+			Password: ProRedisPwd,
+			DB:       15,
+		}),
 	}
 }
 

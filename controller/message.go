@@ -34,7 +34,7 @@ func MessageAction(c *gin.Context) {
 	if err != nil {
 		MessageRespondWithError(c, -1, "MessageAction Error: "+err.Error())
 	}
-	c.JSON(http.StatusOK, Response{StatusCode: 0, StatusMsg: "MessageAction Success"})
+	c.JSON(http.StatusOK, Response{StatusCode: 0, StatusMsg: "MessageAction Success!"})
 }
 
 // MessageChat 消息列表
@@ -43,7 +43,6 @@ func MessageChat(c *gin.Context) {
 	ToUserID := c.GetInt64("to_user_id")
 	preMsgTime := c.Query("content")
 	log.Println("content", preMsgTime)
-	messageService := service.GetMessageServiceInstance()
 	messages, err := messageService.MessageChat(FromUserID, ToUserID)
 	log.Println(messages)
 	if err != nil {
@@ -51,7 +50,6 @@ func MessageChat(c *gin.Context) {
 			Response: Response{StatusCode: -1, StatusMsg: "MessageChat Error"},
 		})
 	} else {
-		c.JSON(http.StatusOK, ChatResponse{Response: Response{StatusCode: 0, StatusMsg: "MessageChat Success"}, MessageList: messages})
-
+		c.JSON(http.StatusOK, ChatResponse{Response: Response{StatusCode: 0, StatusMsg: "MessageChat Success!"}, MessageList: messages})
 	}
 }

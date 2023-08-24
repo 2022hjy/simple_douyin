@@ -30,9 +30,10 @@ func SendMessage(message Message) (Message, error) {
 }
 
 // MessageChat 当前登录用户和其他指定用户的聊天记录
+// TODO 是否要考虑上次最新消息时间，还是直接获取全部聊天记录
 func MessageChat(loginUserId int64, targetUserId int64) ([]Message, error) {
 	messages := make([]Message, 0, config.MessageInitNum)
-	result := database.Db.Where("(from_user_id = ? AND to_user_id = ?) OR (to_user_id = ? AND from_user_id = ?)",
+	result := database.Db.Where("(from_user_id = ? and to_user_id = ?) or (from_user_id = ? and to_user_id = ?)",
 		loginUserId, targetUserId, targetUserId, loginUserId).
 		Order("create_time ASC").
 		Find(&messages)
@@ -51,7 +52,8 @@ func LatestMessage(loginUserId int64, targetUserId int64) (Message, error) {
 	var message Message
 	query := database.Db.Where("from_user_id = ? AND to_user_id = ?", loginUserId, targetUserId).
 		Or("to_user_id = ? AND from_user_id = ?", targetUserId, loginUserId).
-		Order("create_time DESC").Limit(1)
+		Order("create_time DESC").
+		Limit(1)
 	result := query.Take(&message)
 	if result.Error != nil {
 		log.Println("获取最近一条聊天记录失败:", result.Error.Error())

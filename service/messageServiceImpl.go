@@ -38,9 +38,8 @@ func (c *MessageServiceImpl) SendMessage(fromUserId int64, toUserId int64, conte
 		CreateTime: time.Unix(time.Now().Unix(), 0),
 	}
 	LaseMessage, err := dao.SendMessage(message)
-
-	//存入reids
-	updateMessageRedis(fromUserId, toUserId, LaseMessage)
+	//在发送消息的时候就存入redis
+	updateLastMessageRedis(fromUserId, toUserId, LaseMessage)
 	return nil
 }
 
@@ -49,13 +48,16 @@ func (c *MessageServiceImpl) MessageChat(loginUserId int64, targetUserId int64) 
 	messages, err := dao.MessageChat(loginUserId, targetUserId)
 	if err != nil {
 		log.Println("MessageChat Service出错:", err.Error())
-		return nil, err
+		return []dao.Message{}, err
 	}
 	return messages, nil
 }
 
-func (c *MessageServiceImpl) LatestMessage(loginUserId int64, targetUserId int64) (LatestMessage, error) {
+// todo 更新聊天记录redis
 
+//======================   LatestMessage   =========================
+
+func (c *MessageServiceImpl) LatestMessage(loginUserId int64, targetUserId int64) (LatestMessage, error) {
 	lastMessage, err := c.getLastMessageFromRedis(loginUserId, targetUserId)
 	if err != nil {
 		return LatestMessage{}, err
@@ -69,7 +71,6 @@ func (c *MessageServiceImpl) LatestMessage(loginUserId int64, targetUserId int64
 	if err != nil {
 		return LatestMessage{}, err
 	}
-
 	return lastMessage, nil
 }
 
@@ -85,7 +86,6 @@ func (c *MessageServiceImpl) getLastMessageFromDB(loginUserId int64, targetUserI
 		// 最新一条消息是当前登录用户发送的
 		latestMessage.MsgType = 1
 	} else {
-		// 最新一条消息是当前好友发送的
 		latestMessage.MsgType = 0
 	}
 	return latestMessage, nil
@@ -93,7 +93,7 @@ func (c *MessageServiceImpl) getLastMessageFromDB(loginUserId int64, targetUserI
 
 func (c *MessageServiceImpl) getLastMessageFromRedis(loginUserId int64, targetUserId int64) (LatestMessage, error) {
 	var latestMessage LatestMessage
-	uId := fmt.Sprintf("%s%d-%d", config.UserAllId_MessageR_KEY_PREFIX, loginUserId, targetUserId)
+	uId := fmt.Sprintf("%s%d-%d", config.UserAllId_Message_KEY_PREFIX, loginUserId, targetUserId)
 	UMClient := redis.Clients.UserAllId_MessageR
 	if UMClient == nil {
 		return latestMessage, fmt.Errorf("redis client is nil")
@@ -113,11 +113,12 @@ func (c *MessageServiceImpl) getLastMessageFromRedis(loginUserId int64, targetUs
 		return latestMessage, fmt.Errorf("update redis expiration failed: %v", err)
 	}
 
+	log.Println("redis读取Message成功！")
 	return latestMessage, nil
 }
 
-// updateMessageRedis 更新redis
-func updateMessageRedis(loginUserId int64, targetUserId int64, message dao.Message) {
+// updateLastMessageRedis 更新最新一条消息redis
+func updateLastMessageRedis(loginUserId int64, targetUserId int64, message dao.Message) {
 	// UserAllId --> message
 	UMClient := redis.Clients.UserAllId_MessageR
 	if UMClient == nil {
@@ -125,7 +126,7 @@ func updateMessageRedis(loginUserId int64, targetUserId int64, message dao.Messa
 		return
 	}
 
-	uId := config.UserAllId_MessageR_KEY_PREFIX + strconv.FormatInt(loginUserId, 10) + "-" + strconv.FormatInt(targetUserId, 10)
+	uId := config.UserAllId_Message_KEY_PREFIX + strconv.FormatInt(loginUserId, 10) + "-" + strconv.FormatInt(targetUserId, 10)
 
 	LatestMessage := LatestMessage{
 		Message: message.Content,

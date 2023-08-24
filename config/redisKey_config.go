@@ -27,5 +27,5 @@ const (
 	//	UserId_UserR     *redis.Client
 	UserId_User_KEY_PREFIX = "UserId:"
 
-	UserAllId_MessageR_KEY_PREFIX = "UserAllId:"
+	UserAllId_Message_KEY_PREFIX = "UserAllId:"
 )

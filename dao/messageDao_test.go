@@ -1,7 +1,6 @@
 package dao
 
 import (
-	"fmt"
 	"log"
 	"simple_douyin/middleware/database"
 	"testing"
@@ -34,8 +33,7 @@ func TestMessageChat(t *testing.T) {
 		log.Println("MessageChat 测试失败")
 	}
 	for _, msg := range messages {
-		log.Println(fmt.Sprintf("%d -> %d: %s (sendTime:%v)", msg.FromUserID, msg.ToUserID, msg.Content, msg.CreateTime))
-		log.Println("测试成功！")
+		log.Println(msg)
 	}
 }
 
@@ -48,5 +46,5 @@ func TestLatestMessage(t *testing.T) {
 	if err != nil {
 		log.Println("LatestMessage 测试失败")
 	}
-	log.Println(fmt.Sprintf("%d -> %d 的最新一条消息记录：%s", message.FromUserID, message.ToUserID, message.Content))
+	log.Println(message)
 }

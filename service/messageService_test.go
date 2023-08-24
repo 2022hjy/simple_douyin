@@ -12,7 +12,7 @@ import (
 func TestMessageServiceImpl_SendMessage(t *testing.T) {
 	redis.InitRedis()
 	database.Init()
-	err := messageServiceImpl.SendMessage(2, 26, "226")
+	err := messageServiceImpl.SendMessage(2, 26, "226-1")
 	if err == nil {
 		log.Println("SendMessage Service 正常")
 	}
@@ -33,5 +33,4 @@ func TestMessageServiceImpl_LatestMessage(t *testing.T) {
 	database.Init()
 	latestMessage, _ := messageServiceImpl.LatestMessage(2, 26)
 	log.Println(fmt.Sprintf("%+v", latestMessage))
-
 }
