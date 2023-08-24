@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"github.com/go-redsync/redsync/v4"
@@ -284,7 +285,9 @@ func deleteCommentRedis(videoId int64, commentId int64) error {
 	}
 	defer mutex.Unlock()
 
-	err := VCidClient.SRem(vId, cId).Err()
+	ctx := context.Background() // 创建一个新的context
+	err := VCidClient.SRem(ctx, vId, cId).Err()
+
 	if err != nil {
 		log.Printf("delete redis failed, err:%v\n", err)
 		return err

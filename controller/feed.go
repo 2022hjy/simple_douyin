@@ -5,6 +5,8 @@ import (
 	"log"
 	"math"
 	"net/http"
+	"simple_douyin/config"
+	"simple_douyin/dao"
 	"simple_douyin/service"
 	"strconv"
 	"time"
@@ -44,7 +46,10 @@ func Feed(c *gin.Context) {
 		convTime = time.Now()
 	}
 	userId := c.GetInt64("userId")
-	douyinVideos, nextTime, err := videoService.Feed(convTime, userId)
+	plainVideos, nextTime, err := videoService.Feed(convTime)
+
+	douyinVideos := make([]VideoResponse, 0, config.VideoInitNumPerRefresh)
+	douyinVideos, err = getRespVideos(plainVideos, userId)
 	if err != nil {
 		MessageRespondWithError(c, -1, "Feed Error: "+err.Error())
 	}
@@ -54,4 +59,18 @@ func Feed(c *gin.Context) {
 		VideoList: douyinVideos,
 		NextTime:  nextTime.Unix(),
 	})
+}
+
+// getRespVideos dao.video --> FeedResponse
+func getRespVideos(plainVideos []dao.Video, userId int64) ([]VideoResponse, error) {
+	var douyinVideos []VideoResponse
+	for _, video := range plainVideos {
+		response, err := ConvertDBVideoToResponse(video, userId)
+		if err != nil {
+			log.Println("getRespVideos:", err)
+			return []VideoResponse{}, nil
+		}
+		douyinVideos = append(douyinVideos, response)
+	}
+	return douyinVideos, nil
 }

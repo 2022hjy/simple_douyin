@@ -5,6 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
+	"simple_douyin/config"
 	"simple_douyin/service"
 	"strconv"
 )
@@ -56,7 +57,13 @@ func PublishList(c *gin.Context) {
 	token := c.Query("token")
 	log.Println("获取到用户 token：", token)
 	videoService := service.GetVideoServiceInstance()
-	videos, err := videoService.PublishList(userId)
+	plainVideos, err := videoService.PublishList(userId)
+	videos := make([]VideoResponse, 0, config.VideoInitNum)
+	videos, err = getRespVideos(plainVideos, userId)
+	if err != nil {
+		log.Println("getRespVideos:", err)
+	}
+
 	if err != nil {
 		c.JSON(http.StatusOK, FeedResponse{
 			Response:  Response{StatusCode: 1, StatusMsg: "获取用户视频发布列表失败!"},

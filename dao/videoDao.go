@@ -8,14 +8,14 @@ import (
 )
 
 type Video struct {
-	Id            int64     `json:"id"`             // 视频 Id
-	UserInfoId    int64     `json:"user_info_id"`   // 视频作者 Id
-	Title         string    `json:"title"`          // 视频标题
-	PlayUrl       string    `json:"play_url"`       // 视频播放地址
-	CoverUrl      string    `json:"cover_url"`      // 视频封面地址
-	IsFavorite    int       `json:"is_favorite"`    // 是否被like
-	FavoriteCount int64     `json:"favorite_count"` // like数
-	CommentCount  int64     `json:"comment_count"`  // 评论数
+	Id            int64     `json:"id" gorm:"primaryKey;autoIncrement"` // 视频 Id
+	UserInfoId    int64     `json:"user_info_id"`                       // 视频作者 Id
+	Title         string    `json:"title"`                              // 视频标题
+	PlayUrl       string    `json:"play_url"`                           // 视频播放地址
+	CoverUrl      string    `json:"cover_url"`                          // 视频封面地址
+	IsFavorite    int       `json:"is_favorite"`                        // 是否被like
+	FavoriteCount int64     `json:"favorite_count"`                     // like数
+	CommentCount  int64     `json:"comment_count"`                      // 评论数
 	CreatedAt     time.Time // 视频创建时间
 	UpdatedAt     time.Time // 视频更新时间
 }
@@ -27,7 +27,8 @@ func (Video) TableName() string {
 
 // SaveVideo 保存视频记录到数据库中
 func SaveVideo(video Video) error {
-	result := database.Db.Save(video)
+	log.Printf("要保存的 video：%+v\n", video) // 添加日志输出
+	result := database.Db.Create(&video)
 	if result.Error != nil {
 		log.Println("数据库保存视频失败！", result.Error)
 		return result.Error
@@ -103,8 +104,7 @@ func GetVideoCnt(userId int64) (int64, error) {
 
 // UploadVideo 上传视频
 func UploadVideo(videoName string, authorId int64, videoTitle string) error {
-	var video Video
-	video = Video{
+	video := Video{
 		UserInfoId: authorId,
 		Title:      videoTitle,
 		PlayUrl:    config.PlayUrlPrefix + videoName + ".mp4",
