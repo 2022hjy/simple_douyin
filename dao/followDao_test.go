@@ -3,6 +3,7 @@ package dao
 import (
 	"fmt"
 	"log"
+	"simple_douyin/middleware/database"
 	"testing"
 )
 
@@ -11,6 +12,7 @@ func TestFollowDao_InsertFollowRelation(t *testing.T) {
 }
 
 func TestFollowDao_FindRelation(t *testing.T) {
+	database.Init()
 	follow, err := followDao.FindEverFollowing(2, 3)
 	if err == nil {
 		log.Default()
@@ -24,6 +26,7 @@ func TestFollowDao_UpdateFollowRelation(t *testing.T) {
 }
 
 func TestFollowDao_GetFollowingsInfo(t *testing.T) {
+	database.Init()
 	followingsID, followingsCnt, err := followDao.GetFollowingsInfo(1)
 
 	if err != nil {
@@ -36,6 +39,7 @@ func TestFollowDao_GetFollowingsInfo(t *testing.T) {
 }
 
 func TestFollowDao_GetUserName(t *testing.T) {
+	database.Init()
 	name, err := followDao.GetUserName(2)
 	if err != nil {
 		log.Default()
@@ -44,6 +48,7 @@ func TestFollowDao_GetUserName(t *testing.T) {
 }
 
 func TestFollowDao_GetFriendsInfo(t *testing.T) {
+	database.Init()
 	friendId, friendCnt, _ := followDao.GetFriendsInfo(6)
 
 	fmt.Println(friendId)

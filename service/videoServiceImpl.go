@@ -1,6 +1,5 @@
 package service
 
-
 import (
 	"bytes"
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"

@@ -3,6 +3,7 @@ package dao
 import (
 	"log"
 	"simple_douyin/config"
+	"simple_douyin/middleware/database"
 	"sync"
 	"time"
 )
@@ -55,7 +56,8 @@ func (*FollowDao) FindEverFollowing(userId int64, targetId int64) (*Follow, erro
 	// 用于存储查出来的关注关系。
 	follow := Follow{}
 	// 查询是否存在记录
-	err := Db.
+
+	err := database.Db.
 		Where("user_id = ?", userId).
 		Where("following_id = ?", targetId).
 		Where("is_followed = ? or is_followed = ?", 0, 1).
@@ -83,7 +85,7 @@ func (*FollowDao) InsertFollowRelation(userId int64, targetId int64) (bool, erro
 		CreatedAt:   time.Now().Format(config.GO_STARTER_TIME),
 	}
 	// 插入用户与目标用户的关注记录
-	err := Db.Select("UserId", "FollowingId", "Followed", "CreatedAt").Create(&follow).Error
+	err := database.Db.Select("UserId", "FollowingId", "Followed", "CreatedAt").Create(&follow).Error
 	// 插入失败，返回err.
 	if nil != err {
 		log.Println(err.Error())
@@ -96,7 +98,7 @@ func (*FollowDao) InsertFollowRelation(userId int64, targetId int64) (bool, erro
 // UpdateFollowRelation 给定用户和目标用户的id，更新他们的关系为取消关注或再次关注。
 func (*FollowDao) UpdateFollowRelation(userId int64, targetId int64, followed int8) (bool, error) {
 	// 更新用户与目标用户的关注记录（正在关注或者取消关注）
-	err := Db.Model(Follow{}).
+	err := database.Db.Model(Follow{}).
 		Where("user_id = ?", userId).
 		Where("following_id = ?", targetId).
 		Update("is_followed", followed).Error
@@ -115,7 +117,7 @@ func (*FollowDao) FindFollowRelation(userId int64, targetId int64) (bool, error)
 	// follow变量用于后续存储数据库查出来的用户关系。
 	follow := Follow{}
 	//当查询出现错误时，日志打印err msg，并return err.
-	if err := Db.
+	if err := database.Db.
 		Where("user_id = ?", userId).
 		Where("following_id = ?", targetId).
 		Where("is_followed = ?", 1).
@@ -138,7 +140,7 @@ func (*FollowDao) GetFollowingsInfo(userId int64) ([]int64, int64, error) {
 	var followingId []int64
 
 	// user_id -> following_id
-	result := Db.Model(&Follow{}).Where("user_id = ?", userId).Where("is_followed = ?", 1).Pluck("following_id", &followingId)
+	result := database.Db.Model(&Follow{}).Where("user_id = ?", userId).Where("is_followed = ?", 1).Pluck("following_id", &followingId)
 	followingCnt = result.RowsAffected
 
 	if nil != result.Error {
@@ -157,7 +159,7 @@ func (*FollowDao) GetFollowersInfo(userId int64) ([]int64, int64, error) {
 	var followerId []int64
 
 	// following_id -> user_id
-	result := Db.Model(&Follow{}).Where("following_id = ?", userId).Where("is_followed = ?", 1).Pluck("user_id", &followerId)
+	result := database.Db.Model(&Follow{}).Where("following_id = ?", userId).Where("is_followed = ?", 1).Pluck("user_id", &followerId)
 	followerCnt = result.RowsAffected
 
 	if nil != result.Error {
@@ -198,7 +200,7 @@ func (*FollowDao) GetFollowingCnt(userId int64) (int64, error) {
 	// 用于存储当前用户关注了多少人。
 	var cnt int64
 	// 查询出错，日志打印err msg，并return err
-	if err := Db.Model(Follow{}).
+	if err := database.Db.Model(Follow{}).
 		Where("user_id = ?", userId).
 		Where("is_followed = ?", 1).
 		Count(&cnt).Error; nil != err {
@@ -214,7 +216,7 @@ func (*FollowDao) GetFollowerCnt(userId int64) (int64, error) {
 	// 用于存储当前用户粉丝数的变量
 	var cnt int64
 	// 当查询出现错误的情况，日志打印err msg，并返回err.
-	if err := Db.
+	if err := database.Db.
 		Model(Follow{}).
 		Where("following_id = ?", userId).
 		Where("is_followed= ?", 1).
@@ -230,7 +232,7 @@ func (*FollowDao) GetFollowerCnt(userId int64) (int64, error) {
 func (*FollowDao) GetUserName(userId int64) (string, error) {
 	var name string
 
-	err := Db.Table("user").Where("id = ?", userId).Pluck("name", &name).Error
+	err := database.Db.Table("user").Where("user_id = ?", userId).Pluck("username", &name).Error
 
 	if nil != err {
 		log.Println(err.Error())
