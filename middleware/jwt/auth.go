@@ -1,6 +1,7 @@
 package jwt
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/RaymondCode/simple-demo/controller"
@@ -18,7 +19,7 @@ func Auth() gin.HandlerFunc {
 			c.Abort()
 			c.JSON(http.StatusUnauthorized, controller.Response{
 				StatusCode: http.StatusUnauthorized,
-				StatusMsg:  "Unauthorized",
+				StatusMsg:  err.Error(),
 			})
 		} else {
 			c.Set("token_user_id", claims.ID)
@@ -30,7 +31,7 @@ func Auth() gin.HandlerFunc {
 func AuthCheckToken(token string) (*util.Claims, error) {
 	// 没携带token，返回错误
 	if len(token) == 0 {
-		return nil, error(nil)
+		return nil, errors.New("token is empty")
 	}
 	return util.ParseToken(token)
 }
