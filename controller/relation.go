@@ -5,17 +5,18 @@ import (
 	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
+	"simple_douyin/dao"
 	"simple_douyin/service"
 	"strconv"
 )
 
 type UserListResponse struct {
 	Response
-	UserList []UserResponse `json:"user_list"`
+	UserList []dao.Userfollow `json:"user_list"`
 }
 type FriendUserListResponse struct {
 	Response
-	FriendUserList []FriendUser `json:"user_list"`
+	FriendUserList []dao.FriendUser `json:"user_list"`
 }
 
 // 关系操作
