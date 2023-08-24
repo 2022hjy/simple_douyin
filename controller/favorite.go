@@ -25,11 +25,15 @@ type GetFavouriteListResponse struct {
 }
 
 func init() {
-	commentService = service.GetCommentServiceInstance()
+	favoriteService = service.GetFavoriteServiceInstance()
 }
 
+var (
+	favoriteService *service.FavoriteService
+)
+
 // FavoriteAction 处理点赞操作
-func FavoriteAction(c *gin.Context, service service.FavoriteService) {
+func FavoriteAction(c *gin.Context) {
 	videoID, err := strconv.ParseInt(c.Query("video_id"), 10, 64)
 
 	if err != nil {
@@ -38,7 +42,7 @@ func FavoriteAction(c *gin.Context, service service.FavoriteService) {
 		return
 	}
 
-	if err := service.FavoriteAction(c.GetInt64("userId"), videoID); err != nil {
+	if err := favoriteService.FavoriteAction(c.GetInt64("userId"), videoID); err != nil {
 		log.Printf("用户 %d 对视频 %d 的点赞操作失败：%v", c.GetInt64("userId"), videoID, err)
 		c.JSON(http.StatusInternalServerError, ErrorResponse{StatusCode: "-1", StatusMsg: "收藏操作失败"})
 		return
@@ -49,7 +53,7 @@ func FavoriteAction(c *gin.Context, service service.FavoriteService) {
 }
 
 // FavoriteList 获取收藏列表
-func FavoriteList(c *gin.Context, service service.FavoriteService) {
+func FavoriteList(c *gin.Context) {
 	userId, err := strconv.ParseInt(c.Query("user_id"), 10, 64)
 	if err != nil {
 		log.Printf("解析 user_id 失败：%v", err)
@@ -57,7 +61,7 @@ func FavoriteList(c *gin.Context, service service.FavoriteService) {
 		return
 	}
 
-	videoList, err := service.GetFavoriteList(userId)
+	videoList, err := favoriteService.GetFavoriteList(userId)
 	if err != nil {
 		log.Printf("获取用户 %d 的收藏列表失败：%v", userId, err)
 		c.JSON(http.StatusInternalServerError, ErrorResponse{StatusCode: "-1", StatusMsg: "获取收藏列表失败"})

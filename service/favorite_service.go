@@ -42,6 +42,7 @@ func GetFavoriteServiceInstance() *FavoriteService {
 	})
 	return favoriteService
 }
+
 func (f *FavoriteService) FavoriteAction(userId int64, videoId int64) error {
 	// 创建一个 FavoriteDao 对象
 	favorite := dao.FavoriteDao{

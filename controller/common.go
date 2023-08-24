@@ -5,6 +5,13 @@ type Response struct {
 	StatusMsg  string `json:"status_msg,omitempty"`
 }
 
+func Error(code int32, msg string) Response {
+	return Response{
+		StatusCode: code,
+		StatusMsg:  msg,
+	}
+}
+
 func Success() Response {
 	return Response{
 		StatusCode: 0,
