@@ -11,17 +11,16 @@ import (
 // 测试保存视频到数据库  GET
 func TestSaveVideo(t *testing.T) {
 	database.Init()
-
 	video := Video{
-		UserInfoId: 226,
-		Title:      "测试视频1",
-		PlayUrl:    "https://www.baidu.com",
-		CoverUrl:   "https://www.baidu.com",
-		//IsFavorite:    1,
-		//FavoriteCount: 23,
-		//CommentCount:  0,
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
+		UserInfoId:    226,
+		Title:         "测试视频1",
+		PlayUrl:       "https://www.baidu.com",
+		CoverUrl:      "https://www.baidu.com",
+		IsFavorite:    1,
+		FavoriteCount: 23,
+		CommentCount:  0,
+		CreatedAt:     time.Now(),
+		UpdatedAt:     time.Now(),
 	}
 	err := SaveVideo(video)
 	if err != nil {
@@ -33,7 +32,6 @@ func TestSaveVideo(t *testing.T) {
 // 根据视频 Id 获取视频信息  GET
 func TestGetVideoByVideoId(t *testing.T) {
 	database.Init()
-
 	// 测试获取单个视频
 	video, err := GetVideoByVideoId(1)
 	if err != nil {
@@ -57,8 +55,7 @@ func TestGetVideoByVideoId(t *testing.T) {
 // 测试根据用户 Id 获取该用户已发布的所有视频  GET
 func TestGetVideosByUserId(t *testing.T) {
 	database.Init()
-
-	res, err := GetVideosByUserId(1)
+	res, err := GetVideosByUserId(226)
 	if err == nil {
 		for _, re := range res {
 			log.Println(re)
@@ -95,7 +92,7 @@ func TestGetVideosByLatestTime(t *testing.T) {
 // 根据userId获取作品数量  GET
 func TestGetVideoCnt(t *testing.T) {
 	database.Init()
-	count, err := GetVideoCnt(1)
+	count, err := GetVideoCnt(226)
 	if err == nil {
 		log.Println(count)
 	}

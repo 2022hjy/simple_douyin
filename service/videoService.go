@@ -27,5 +27,5 @@ type VideoService interface {
 	GetVideoCnt(userId int64) (int64, error)
 
 	// GetVideoListById 查询videoId列表的视频信息
-	GetVideoListById(videoIdList []int64, userId int64) ([]Video, error)
+	//GetVideoListById(videoIdList []int64, userId int64) ([]Video, error)
 }

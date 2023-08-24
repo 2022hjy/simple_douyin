@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"log"
 	"mime/multipart"
+	"simple_douyin/dao"
 	"simple_douyin/middleware/database"
 	"simple_douyin/middleware/redis"
 	"testing"
@@ -14,7 +15,7 @@ import (
 // 获取某位用户的视频信息list
 func TestVideoServiceImpl_PublishList(t *testing.T) {
 	redis.InitRedis()
-	videoList, err := videoServiceImp.PublishList(1)
+	videoList, err := videoServiceImpl.PublishList(226)
 	if err != nil {
 		log.Default()
 	}
@@ -26,7 +27,7 @@ func TestVideoServiceImpl_Feed(t *testing.T) {
 	database.Init()
 	redis.InitRedis()
 
-	videoList, nextTime, err := videoServiceImp.Feed(time.Now(), 1)
+	videoList, nextTime, err := videoServiceImpl.Feed(time.Now())
 	if err != nil {
 		log.Default()
 	}
@@ -38,7 +39,7 @@ func TestVideoServiceImpl_Feed(t *testing.T) {
 func TestVideoServiceImpl_GetVideoCnt(t *testing.T) {
 	database.Init()
 	redis.InitRedis()
-	videoCnt, err := videoServiceImp.GetVideoCnt(1)
+	videoCnt, err := videoServiceImpl.GetVideoCnt(226)
 	if err != nil {
 		log.Default()
 	}
@@ -47,9 +48,14 @@ func TestVideoServiceImpl_GetVideoCnt(t *testing.T) {
 
 // 将视频上传到oss 并保存到数据库
 func TestPublish(t *testing.T) {
-	filename := "videotest.mp4"
-	content, err := ioutil.ReadFile(filename)
-	videocontent := []byte(content)
+	database.Init()
+
+	filePath := "videotest.mp4"
+	videocontent, err := ioutil.ReadFile(filePath)
+	if err != nil {
+		log.Fatal("Error reading file:", err)
+		return
+	}
 
 	fileHeader := &multipart.FileHeader{
 		Filename: "videotest.mp4",
@@ -65,10 +71,12 @@ func TestPublish(t *testing.T) {
 	log.Println(err)
 }
 
-//func TestUploadVideo(t *testing.T) {
-//	database.Init()
-//	err := UploadVideo("VID_2023_1_29", 1, "测试视频1")
-//	if err != nil {
-//		return
-//	}
-//}
+func TestUploadVideo(t *testing.T) {
+	database.Init()
+
+	title := "test title"
+	userId := int64(1)
+
+	err := dao.UploadVideo("videoname", userId, title)
+	log.Println(err)
+}
