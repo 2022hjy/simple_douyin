@@ -1,12 +1,13 @@
 package mq
 
 import (
-	"github.com/streadway/amqp"
 	"log"
 	"os"
 	"os/signal"
-	"simple_douyin/config"
 	"syscall"
+
+	"github.com/streadway/amqp"
+	"simple_douyin/config"
 )
 
 // 路由键常量
