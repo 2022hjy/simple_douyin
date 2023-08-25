@@ -12,13 +12,13 @@ func main() {
 
 	r := gin.Default()
 
-	apiRouter := r.Group("/douyin")
+	ApiRouter := r.Group("/douyin")
 
-	middleware.InitMiddleware(apiRouter)
+	middleware.InitMiddleware(ApiRouter)
 
 	database.Init()
 
-	InitRouter(apiRouter)
+	InitRouter(ApiRouter)
 
 	r.Run() // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 }

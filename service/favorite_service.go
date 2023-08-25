@@ -53,6 +53,7 @@ func (f *FavoriteService) FavoriteAction(userId int64, videoId int64) error {
 	}
 
 	// 判断用户是否已经点赞过该视频
+	log.Println("正在判断用户是否已经点赞过该视频")
 	isFavorited, err := dao.IsVideoFavoritedByUser(userId, videoId)
 
 	go func() {

@@ -161,6 +161,9 @@ func IsVideoFavoritedByUser(userId int64, videoId int64) (bool, error) {
 	var isFavorited int8
 	result := Db.Model(FavoriteDao{}).Select("is_favorite").Where("user_id= ? and video_id= ?", userId, videoId).First(&isFavorited)
 	c := result.RowsAffected
+	if result == nil {
+		return false, errors.New("current video is not exist")
+	}
 	if c == 0 {
 		return false, errors.New("current user haven not favorited current video")
 	}

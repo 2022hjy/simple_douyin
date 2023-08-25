@@ -148,7 +148,16 @@ func InitMq() {
 
 // SendMessage 用于发送消息到交换器, routingKey为路由键，body为消息内容, 交换器名为events
 // 交换机将会根据路由键将消息发送到对应的队列中，无须指定队列名
+// 在这里加一个初始化检查
 func SendMessage(routingKey string, string2 string) {
+	InitMq()
+	if ch == nil {
+		log.Println("Channel is nil. Trying to initialize again.")
+		if ch == nil {
+			log.Fatal("Failed to re-initialize channel.")
+			return
+		}
+	}
 	log.Println("发送消息到交换器：", exchangeName, "，路由键：", routingKey)
 	err := ch.Publish(
 		exchangeName,
@@ -159,12 +168,9 @@ func SendMessage(routingKey string, string2 string) {
 			ContentType: "text/plain",
 			Body:        []byte(string2),
 		})
-	failOnError(err, "Failed to publish a message")
-}
-
-func failOnError(err error, msg string) {
 	if err != nil {
-		log.Fatalf("%s: %s", msg, err)
+		log.Println("我在 SendMessage 的错误处理中")
+		log.Println("Failed to publish a message:", err)
 	}
 }
 
@@ -172,3 +178,67 @@ func closeResources(ch *amqp.Channel, conn *amqp.Connection) {
 	ch.Close()
 	conn.Close()
 }
+
+func failOnError(err error, msg string) {
+	if err != nil {
+		log.Print("我在 failOnError 中")
+		log.Printf("%s: %s", msg, err)
+	}
+}
+
+//
+//func establishConnection(url string, maxRetries int) error {
+//	var err error
+//	var conn = *new(*amqp.Connection)
+//	attempts := 0
+//	for attempts < maxRetries {
+//		conn, err = amqp.Dial(url)
+//		if err == nil {
+//			return nil
+//		}
+//		attempts++
+//		log.Printf("Failed to connect to RabbitMQ (attempt %d/%d). Retrying in 5 seconds...", attempts, maxRetries)
+//		time.Sleep(5 * time.Second)
+//	}
+//	return err
+//}
+//
+//func monitorConnection(conn *amqp.Connection, url string) {
+//	for {
+//		reason, ok := <-conn.NotifyClose(make(chan *amqp.Error))
+//		if !ok {
+//			log.Println("Connection closed. Reconnecting...")
+//			err := establishConnection(url)
+//			if err != nil {
+//				log.Fatal("Failed to reconnect:", err)
+//			}
+//		} else {
+//			log.Printf("Connection closed due to: %s. Reconnecting...", reason)
+//			err := establishConnection(url)
+//			if err != nil {
+//				log.Fatal("Failed to reconnect:", err)
+//			}
+//		}
+//	}
+//}
+//
+//// 定时进行健康检查
+//func healthCheck() {
+//	ticker := time.NewTicker(10 * time.Second)
+//	defer ticker.Stop()
+//
+//	for {
+//		select {
+//		case <-ticker.C:
+//			if conn == nil || conn.IsClosed() {
+//				log.Println("Connection is not available. Trying to reconnect.")
+//				_ = establishConnection(config.MqUrl)
+//			}
+//
+//			if ch == nil || ch.IsClosed() {
+//				log.Println("Channel is not available. Trying to reinitialize.")
+//				initChannelResources()
+//			}
+//		}
+//	}
+//}

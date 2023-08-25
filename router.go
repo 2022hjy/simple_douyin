@@ -49,7 +49,7 @@ func InitRouter(apiRouter *gin.RouterGroup) *gin.RouterGroup {
 	// 评论相关路由
 	rComment := apiRouter.Group("/comment")
 	{
-		rComment.GET("/action/", controller.CommentAction)
+		rComment.POST("/action/", controller.CommentAction)
 		rComment.GET("/list/", controller.CommentList)
 	}
 

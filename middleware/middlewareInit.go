@@ -8,6 +8,12 @@ import (
 	"simple_douyin/middleware/redis"
 )
 
+//func init() {
+//	log.Log.Info("Init Middleware")
+//	Apirouter := gin.Default().Group("/douyin")
+//	InitMiddleware(Apirouter)
+//}
+
 func InitMiddleware(apiRouter *gin.RouterGroup) {
 
 	// 初始化 logrus
