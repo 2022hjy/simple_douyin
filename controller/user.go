@@ -3,6 +3,7 @@ package controller
 import (
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"simple_douyin/service"
@@ -25,24 +26,18 @@ type InfoResponse struct {
 func Register(c *gin.Context) {
 	var loginInfo service.LoginInfo
 
-	// 从查询字符串中获取参数
-	loginInfo.UserName = c.Query("username")
-	loginInfo.Password = c.Query("password")
-
 	// 1. 检验参数，如果不符合要求，返回错误信息
-	if loginInfo.UserName == "" || loginInfo.Password == "" {
+	if err := c.ShouldBind(&loginInfo); err != nil {
 		c.JSON(http.StatusBadRequest,
-			Error(http.StatusBadRequest, "Invalid parameter1"))
+			Error(http.StatusBadRequest, "Invalid parameter"))
 		return
 	}
-
 	credential, err := userService.Register(loginInfo)
 	if err != nil {
 		c.JSON(http.StatusBadRequest,
 			Error(http.StatusBadRequest, err.Error()))
 		return
 	}
-
 	c.JSON(http.StatusOK, LoginResponse{
 		Response:   Success(),
 		Credential: credential,
@@ -77,8 +72,13 @@ func Login(c *gin.Context) {
 }
 
 func UserInfo(c *gin.Context) {
-	// 从context中获取userId并转为int64类型
-	userId := c.GetInt64("userId")
+	// 从query参数中获取user_id
+	userId, err := strconv.ParseInt(c.Query("user_id"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest,
+			Error(http.StatusBadRequest, err.Error()))
+		return
+	}
 	userInfo, err := userService.QuerySelfInfo(userId)
 	if err != nil {
 		c.JSON(http.StatusBadRequest,

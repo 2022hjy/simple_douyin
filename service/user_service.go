@@ -32,8 +32,8 @@ func NewUserServiceInstance() *UserService {
 }
 
 type LoginInfo struct {
-	UserName string `json:"username"`
-	Password string `json:"password"`
+	UserName string `json:"username" form:"username" binding:"required"`
+	Password string `json:"password" form:"password" binding:"required"`
 }
 
 type Credential struct {
@@ -167,6 +167,7 @@ func (f *QueryUserInfoFlow) prepareInfo() error {
 		// 3. 将用户信息写入到redis中，即使写入失败，也不影响后续的流程
 		if err = userDao.SetUserToRedis(user); err != nil {
 			// todo 日志记录一下为什么写入redis失败，并且需要设置一个过期时间，或者直接就不过期
+			log.Fatal(err)
 		}
 		f.user = user
 	}()
