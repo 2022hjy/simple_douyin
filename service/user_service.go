@@ -3,6 +3,7 @@ package service
 import (
 	"encoding/json"
 	"errors"
+	"log"
 	"strconv"
 	"sync"
 
@@ -41,6 +42,7 @@ type Credential struct {
 }
 
 func (u *UserService) Login(info LoginInfo) (*Credential, error) {
+	log.Printf("info: %v", info)
 	user, err := u.userDao.GetUserByName(info.UserName)
 	if err != nil {
 		return nil, errors.New("user not exists")

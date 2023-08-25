@@ -1,6 +1,7 @@
 package jwt
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/RaymondCode/simple-demo/controller"
@@ -30,7 +31,9 @@ func Auth() gin.HandlerFunc {
 func AuthCheckToken(token string) (*util.Claims, error) {
 	// 没携带token，返回错误
 	if len(token) == 0 {
-		return nil, error(nil)
+		//return nil, error(nil)
+		return nil, errors.New("token is missing") //应该返回错误，但是高帅你原本写的代码，实际上会返回一个nil的Claims和一个nil的error
+		//	当你在Auth中检查这个error时，它是nil，所以你会尝试访问claims.ID，这时claims也是nil，所以会报错空指针
 	}
 	return util.ParseToken(token)
 }

@@ -35,8 +35,8 @@ func InitRouter(apiRouter *gin.RouterGroup) *gin.RouterGroup {
 	// 点赞相关路由
 	rFavorite := apiRouter.Group("/favorite")
 	{
-		rFavorite.POST("/favorite/action/", jwt.Auth(), controller.FavoriteAction)
-		rFavorite.GET("/favorite/list/", jwt.AuthWithoutLogin(), controller.FavoriteList)
+		rFavorite.POST("/action/", jwt.Auth(), controller.FavoriteAction)
+		rFavorite.GET("/list/", jwt.AuthWithoutLogin(), controller.FavoriteList)
 	}
 
 	// 视频相关路由
@@ -49,7 +49,7 @@ func InitRouter(apiRouter *gin.RouterGroup) *gin.RouterGroup {
 	// 评论相关路由
 	rComment := apiRouter.Group("/comment")
 	{
-		rComment.POST("/action/", controller.CommentAction)
+		rComment.GET("/action/", controller.CommentAction)
 		rComment.GET("/list/", controller.CommentList)
 	}
 

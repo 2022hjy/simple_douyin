@@ -47,7 +47,7 @@ CREATE TABLE `message`  (
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `to_user_id`(`to_user_id` ASC) USING BTREE,
   INDEX `from_user_id`(`from_user_id` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 11 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '聊天消息' ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '聊天消息' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of message

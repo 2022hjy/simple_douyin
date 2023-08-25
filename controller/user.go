@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -51,12 +52,17 @@ func Register(c *gin.Context) {
 func Login(c *gin.Context) {
 	var loginInfo service.LoginInfo
 	// 1. 检验参数，如果不符合要求，返回错误信息
-	if err := c.ShouldBindJSON(&loginInfo); err != nil {
+	if err := c.ShouldBind(&loginInfo); err != nil {
 		c.JSON(http.StatusBadRequest,
 			Error(http.StatusBadRequest, "Invalid parameter"))
 		return
 	}
 	// 2. 调用service层的Login方法，返回结果
+	// 从查询字符串中获取参数
+	loginInfo.UserName = c.Query("username")
+	loginInfo.Password = c.Query("password")
+	log.Printf("loginInfo: %v", loginInfo)
+
 	credential, err := userService.Login(loginInfo)
 	if err != nil {
 		c.JSON(http.StatusBadRequest,
