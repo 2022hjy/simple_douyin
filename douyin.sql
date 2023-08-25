@@ -40,6 +40,7 @@ CREATE TABLE `favorite`
 -- ----------------------------
 DROP TABLE IF EXISTS `message`;
 CREATE TABLE `message`  (
+
     `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '聊天id',
     `from_user_id` bigint UNSIGNED NOT NULL COMMENT '发送者id',
     `to_user_id` bigint UNSIGNED NOT NULL COMMENT '接收者id',
@@ -49,6 +50,7 @@ CREATE TABLE `message`  (
     INDEX `to_user_id`(`to_user_id` ASC) USING BTREE,
     INDEX `from_user_id`(`from_user_id` ASC) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '聊天消息' ROW_FORMAT = DYNAMIC;
+
 
 -- ----------------------------
 -- Records of message

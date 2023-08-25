@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"log"
 	"net/http"
 	"strconv"
 
@@ -52,6 +53,11 @@ func Login(c *gin.Context) {
 		return
 	}
 	// 2. 调用service层的Login方法，返回结果
+	// 从查询字符串中获取参数
+	loginInfo.UserName = c.Query("username")
+	loginInfo.Password = c.Query("password")
+	log.Printf("loginInfo: %v", loginInfo)
+
 	credential, err := userService.Login(loginInfo)
 	if err != nil {
 		c.JSON(http.StatusBadRequest,

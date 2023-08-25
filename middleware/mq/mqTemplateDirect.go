@@ -149,6 +149,7 @@ func InitMq() {
 // SendMessage 用于发送消息到交换器, routingKey为路由键，body为消息内容, 交换器名为events
 // 交换机将会根据路由键将消息发送到对应的队列中，无须指定队列名
 func SendMessage(routingKey string, string2 string) {
+	log.Println("发送消息到交换器：", exchangeName, "，路由键：", routingKey)
 	err := ch.Publish(
 		exchangeName,
 		routingKey,

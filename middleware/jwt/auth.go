@@ -31,7 +31,8 @@ func Auth() gin.HandlerFunc {
 func AuthCheckToken(token string) (*util.Claims, error) {
 	// 没携带token，返回错误
 	if len(token) == 0 {
-		return nil, errors.New("token is empty")
+		//return nil, error(nil)
+		return nil, errors.New("token is missing")
 	}
 	return util.ParseToken(token)
 }
