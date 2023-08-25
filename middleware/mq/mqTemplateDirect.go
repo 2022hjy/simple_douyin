@@ -30,6 +30,10 @@ var (
 	FollowMQ  amqp.Queue
 )
 
+func init() {
+	InitMq()
+}
+
 func InitMq() {
 	// 建立连接
 	conn, err := amqp.Dial(config.MqUrl)
