@@ -1,10 +1,10 @@
 package service
 
 import (
-	"bytes"
+	"errors"
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
+	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"io/ioutil"
 	"log"
 	"mime/multipart"
 	"os"
@@ -33,11 +33,12 @@ func GetVideoServiceInstance() *VideoServiceImpl {
 }
 
 // Publish ==================== publish接口 ====================
-func (videoService *VideoServiceImpl) Publish(data *multipart.FileHeader, videoTitle string, authorId int64) error {
+func (videoService *VideoServiceImpl) Publish(c *gin.Context, data *multipart.FileHeader, videoTitle string, authorId int64) error {
 	// 保证唯一的 videoName
 	videoName := uuid.New().String()
-
-	err := UploadVideoToOSS(data, videoName)
+	//log.Println("uuid",uuid)
+	log.Println("videoName:", videoName)
+	err := UploadVideoToOSS(c, data, videoName)
 	if err != nil {
 		return err
 	}
@@ -52,7 +53,65 @@ func (videoService *VideoServiceImpl) Publish(data *multipart.FileHeader, videoT
 	return nil
 }
 
-func UploadVideoToOSS(file *multipart.FileHeader, title string) error {
+//func UploadVideoToOSS(file *multipart.FileHeader, title string) error {
+//	client, err := oss.New(config.OssEndpoint, config.OssAccessKeyId, config.OssAccessKeySecret)
+//	if err != nil {
+//		return err
+//	}
+//
+//	bucket, err := client.Bucket(config.OssBucketName)
+//	if err != nil {
+//		return err
+//	}
+//
+//	videoContent, err := os.Open(file.Filename)
+//	if err != nil {
+//		log.Print("os.Open:", file.Filename)
+//		return err
+//	}
+//
+//	defer func(videoContent *os.File) {
+//		err := videoContent.Close()
+//		if err != nil {
+//			log.Println("videoContent.Close:", err)
+//		}
+//	}(videoContent)
+//
+//	videoData, err := ioutil.ReadAll(videoContent)
+//	if err != nil {
+//		return err
+//	}
+//
+//	videoReader := bytes.NewReader(videoData)
+//
+//	err = bucket.PutObject(config.OssVideoDir+title+".mp4", videoReader)
+//	if err != nil {
+//		return err
+//	}
+//	return nil
+//}
+
+func UploadVideoToOSS(c *gin.Context, file *multipart.FileHeader, title string) error {
+	// 1. 保存上传的文件到临时目录
+	tempFilePath := "/tmp/uploads/" + file.Filename
+	if err := c.SaveUploadedFile(file, tempFilePath); err != nil {
+		return err
+	}
+
+	// 2. 打开临时文件
+	videoContent, err := os.Open(tempFilePath)
+	if err != nil {
+		log.Print("os.Open:", tempFilePath)
+		return err
+	}
+
+	// 使用defer确保在函数结束后关闭文件
+	defer func() {
+		_ = videoContent.Close()
+		_ = os.Remove(tempFilePath) // 删除临时文件
+	}()
+
+	// 3. 上传到OSS
 	client, err := oss.New(config.OssEndpoint, config.OssAccessKeyId, config.OssAccessKeySecret)
 	if err != nil {
 		return err
@@ -63,25 +122,7 @@ func UploadVideoToOSS(file *multipart.FileHeader, title string) error {
 		return err
 	}
 
-	videoContent, err := os.Open(file.Filename)
-	if err != nil {
-		return err
-	}
-	defer func(videoContent *os.File) {
-		err := videoContent.Close()
-		if err != nil {
-			log.Println("videoContent.Close:", err)
-		}
-	}(videoContent)
-
-	videoData, err := ioutil.ReadAll(videoContent)
-	if err != nil {
-		return err
-	}
-
-	videoReader := bytes.NewReader(videoData)
-
-	err = bucket.PutObject(config.OssVideoDir+title+".mp4", videoReader)
+	err = bucket.PutObject(config.OssVideoDir+title+".mp4", videoContent)
 	if err != nil {
 		return err
 	}
@@ -107,10 +148,15 @@ func (videoService *VideoServiceImpl) Feed(latestTime time.Time) ([]dao.Video, t
 		log.Println("GetVideosByLatestTime:", err)
 		return nil, time.Time{}, err
 	}
+	log.Println("plainVideos:", plainVideos)
+	if len(plainVideos) == 0 {
+		return []dao.Video{}, time.Time{}, errors.New("plainVideos is empty")
+	}
 	return plainVideos, plainVideos[len(plainVideos)-1].CreatedAt, nil
+
 }
 
-// GetVideoListById 根据videoIdList查询视频信息
+////GetVideoListById 根据videoIdList查询视频信息
 //func (videoService *VideoServiceImpl) GetVideoListById(videoIdList []int64, userId int64) ([]controller.VideoResponse, error) {
 //	videoList := make([]controller.VideoResponse, 0, config.VideoInitNum)
 //	plainVideoList, _ := dao.GetVideoListById(videoIdList)

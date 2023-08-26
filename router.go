@@ -3,6 +3,7 @@ package main
 import (
 	//"github.com/RaymondCode/simple-demo/controller"
 	"github.com/gin-gonic/gin"
+	"log"
 	"simple_douyin/controller"
 	"simple_douyin/middleware/corsUtils"
 	"simple_douyin/middleware/jwt"
@@ -42,7 +43,7 @@ func InitRouter(apiRouter *gin.RouterGroup) *gin.RouterGroup {
 	// 视频相关路由
 	rVideo := apiRouter.Group("/publish")
 	{
-		rVideo.POST("/action/", controller.Publish)
+		rVideo.POST("/action/", jwt.Auth(), controller.Publish)
 		rVideo.GET("/list/", jwt.AuthWithoutLogin(), controller.PublishList)
 	}
 
@@ -62,5 +63,6 @@ func InitRouter(apiRouter *gin.RouterGroup) *gin.RouterGroup {
 
 	// 允许跨域
 	apiRouter.Use(corsUtils.AllowAllCORS())
+	log.Printf("Init Router success ！")
 	return apiRouter
 }

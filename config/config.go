@@ -31,8 +31,8 @@ const (
 	// CoverUrlSuffix 频封面图的URL后缀，通过该后缀可以对视频进行截图并获取封面图
 	CoverUrlSuffix = "?x-oss-process=video/snapshot,t_2000,m_fast"
 
-	OssAccessKeyId     = "LTAI5tNUGBD7bCfAoUddQVVw"
-	OssAccessKeySecret = "1DM9nfo7MlGuN00sWFU0zrtkUELDtG"
+	OssAccessKeyId     = "LTAI5t8tm2akUj2GSrHYdWas"
+	OssAccessKeySecret = "nLPNzL7QLAU6ORrT3hNkP1yV4JNJDR"
 	OssBucketName      = "simple-tiktok"
 	OssEndpoint        = "https://oss-cn-beijing.aliyuncs.com"
 	//	https://simple-tiktok.oss-cn-beijing.aliyuncs.com
@@ -48,7 +48,7 @@ const (
 const (
 	// TokenExpireDuration token过期时间
 	// 测试阶段为了方便，设置为1天，正式上线后应该设置为2小时
-	TokenExpireDuration = time.Hour * 24
+	TokenExpireDuration = time.Hour * 24 * 3
 	// JWTSECRET jwt加密串
 	JWTSECRET = "hello"
 )

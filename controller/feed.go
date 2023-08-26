@@ -34,6 +34,7 @@ type FeedResponse struct {
 // Feed 不限制登录状态，返回按投稿时间倒序的视频列表，视频数由服务端控制，单次最多30个
 func Feed(c *gin.Context) {
 	latestTime := c.Query("latest_time")
+	log.Println("latestTime:", latestTime)
 	log.Println("返回视频的最新投稿时间戳:", latestTime)
 	var convTime time.Time
 	if latestTime != "0" {
@@ -47,10 +48,16 @@ func Feed(c *gin.Context) {
 		convTime = time.Now()
 	}
 	userId := c.GetInt64("token_user_id")
+	log.Printf("开始调用 feed 功能")
+	convTime = time.Now()
+	log.Printf("convTime:%v\n", convTime)
 	plainVideos, nextTime, err := videoService.Feed(convTime)
+	log.Println("调用 feed 功能结束")
 
 	douyinVideos := make([]VideoResponse, 0, config.VideoInitNumPerRefresh)
+	log.Println("转换前plainVideos:", plainVideos)
 	douyinVideos, err = getRespVideos(plainVideos, userId)
+	log.Println("转换后douyinVideos:", douyinVideos)
 	if err != nil {
 		MessageRespondWithError(c, -1, "Feed Error: "+err.Error())
 	}
@@ -68,7 +75,7 @@ func getRespVideos(plainVideos []dao.Video, userId int64) ([]VideoResponse, erro
 	for _, video := range plainVideos {
 		response, err := ConvertDBVideoToResponse(video, userId)
 		if err != nil {
-			log.Println("getRespVideos:", err)
+			log.Println("getRespVideos出现问题:", err)
 			return []VideoResponse{}, nil
 		}
 		douyinVideos = append(douyinVideos, response)

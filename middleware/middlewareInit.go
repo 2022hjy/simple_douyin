@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"github.com/dvwright/xss-mw"
 	"github.com/gin-gonic/gin"
 	"simple_douyin/log"
 	"simple_douyin/middleware/ratelimit"
@@ -19,9 +18,9 @@ func InitMiddleware(apiRouter *gin.RouterGroup) {
 	// 初始化 logrus
 	log.LogrusInit()
 
-	//初始化 xss
-	xssMiddleware := xss.XssMw{}
-	apiRouter.Use(xssMiddleware.RemoveXss())
+	////初始化 xss
+	//xssMiddleware := xss.XssMw{}
+	//apiRouter.Use(xssMiddleware.RemoveXss())
 
 	//初始化 Redis
 	redis.InitRedis()
