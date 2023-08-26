@@ -47,7 +47,8 @@ const (
 // JWT配置
 const (
 	// TokenExpireDuration token过期时间
-	TokenExpireDuration = time.Hour * 2
+	// 测试阶段为了方便，设置为1天，正式上线后应该设置为2小时
+	TokenExpireDuration = time.Hour * 24
 	// JWTSECRET jwt加密串
 	JWTSECRET = "hello"
 )

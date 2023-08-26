@@ -9,6 +9,11 @@ import (
 	"simple_douyin/util"
 )
 
+//func init() {
+//	Auth()
+//	AuthWithoutLogin()
+//}
+
 // Auth 鉴权中间件，token存储在query中
 func Auth() gin.HandlerFunc {
 	return func(c *gin.Context) {

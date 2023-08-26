@@ -22,8 +22,8 @@ type FriendUserListResponse struct {
 // 关系操作
 // RelationAction no practical effect, just check if token is valid
 func RelationAction(c *gin.Context) {
-	UserId := c.Query("token_user_id")
-	log.Println("userid参数为：", UserId)
+	userId := c.GetInt64("token_user_id")
+	log.Println("userid参数为：", userId)
 	//userId, err1 := strconv.ParseInt(c.Query("userId"), 10, 64)
 	ToUserId := c.Query("to_user_id")
 	log.Println("to_user参数分别为：", ToUserId)
@@ -31,14 +31,14 @@ func RelationAction(c *gin.Context) {
 	log.Println("action参数分别为：", ActionType)
 
 	//批量转化
-	userId, err2 := strconv.ParseInt(UserId, 10, 64)
+	//userId, err2 := strconv.ParseInt(UserId, 10, 64)
 	toUserId, err3 := strconv.ParseInt(ToUserId, 10, 64)
 	log.Println("参数分别为：", userId, toUserId)
 	actionType, _ := strconv.ParseInt(ActionType, 10, 64)
 	log.Println("参数分别为：", userId, toUserId, actionType)
 	// 传入参数格式有问题。
 
-	if nil != err2 || nil != err3 || actionType < 1 || actionType > 2 {
+	if nil != err3 || actionType < 1 || actionType > 2 {
 		fmt.Printf("fail")
 		c.JSON(http.StatusOK, Response{
 			StatusCode: 400,

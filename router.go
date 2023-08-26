@@ -26,10 +26,10 @@ func InitRouter(apiRouter *gin.RouterGroup) *gin.RouterGroup {
 	// 互动相关路由
 	rInteraction := apiRouter.Group("/relation")
 	{
-		rInteraction.POST("/action/", controller.RelationAction)
-		rInteraction.GET("/follow/list/", controller.Followlist)
-		rInteraction.GET("/follower/list/", controller.FollowerList)
-		rInteraction.GET("/friend/list/", controller.FriendList)
+		rInteraction.POST("/action/", jwt.Auth(), controller.RelationAction)
+		rInteraction.GET("/follow/list/", jwt.Auth(), controller.Followlist)
+		rInteraction.GET("/follower/list/", jwt.Auth(), controller.FollowerList)
+		rInteraction.GET("/friend/list/", jwt.Auth(), controller.FriendList)
 	}
 
 	// 点赞相关路由
@@ -49,15 +49,15 @@ func InitRouter(apiRouter *gin.RouterGroup) *gin.RouterGroup {
 	// 评论相关路由
 	rComment := apiRouter.Group("/comment")
 	{
-		rComment.POST("/action/", controller.CommentAction)
-		rComment.GET("/list/", controller.CommentList)
+		rComment.POST("/action/", jwt.Auth(), controller.CommentAction)
+		rComment.GET("/list/", jwt.Auth(), controller.CommentList)
 	}
 
 	// 私信相关路由
 	rMessage := apiRouter.Group("/message")
 	{
-		rMessage.POST("/action/", controller.MessageAction)
-		rMessage.GET("/chat/", controller.MessageChat)
+		rMessage.POST("/action/", jwt.Auth(), controller.MessageAction)
+		rMessage.GET("/chat/", jwt.Auth(), controller.MessageChat)
 	}
 
 	// 允许跨域
