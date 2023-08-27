@@ -30,11 +30,17 @@ func MessageRespondWithError(c *gin.Context, statusCode int, errMsg string) {
 // MessageAction 发送消息
 func MessageAction(c *gin.Context) {
 	FromUserID := c.GetInt64("token_user_id")
+	//ToUserID := c.GetInt64("to_user_id")
 	ToUserID, err := strconv.ParseInt(c.Query("to_user_id"), 10, 64)
 	if err != nil {
 		MessageRespondWithError(c, -1, "MessageAction Error: "+err.Error())
 	}
 	Content := c.Query("content")
+
+	log.Println("FromUserID:", FromUserID)
+	log.Println("ToUserID:", ToUserID)
+	log.Println("Content:", Content)
+
 	if err := messageService.SendMessage(FromUserID, ToUserID, Content); err != nil {
 		MessageRespondWithError(c, -1, "MessageAction Error: "+err.Error())
 	}

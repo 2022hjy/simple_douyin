@@ -21,7 +21,7 @@ type FavoriteActionResponse struct {
 
 type GetFavouriteListResponse struct {
 	StatusCode string              `json:"status_code"`
-	StatusMsg  string              `json:"status_msg,omitempty"`
+	StatusMsg  string              `json:"status_msg"`
 	VideoList  []VideoListResponse `json:"video_list"`
 }
 

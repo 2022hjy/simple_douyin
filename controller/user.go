@@ -20,7 +20,7 @@ type LoginResponse struct {
 
 type InfoResponse struct {
 	Response
-	*service.UserInfo
+	*service.UserInfo `json:"user"`
 }
 
 func Register(c *gin.Context) {
