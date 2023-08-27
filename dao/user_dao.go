@@ -17,9 +17,9 @@ type User struct {
 	UserId          int64  `json:"id" gorm:"primaryKey;autoIncrement:true" redis:"user_id"`
 	Username        string `json:"name" gorm:"unique;not null" redis:"username"`
 	Password        string `json:"-" redis:"-"` // 不返回给前端
-	Avatar          string `json:"avatar,omitempty" gorm:"default:''" redis:"avatar"`
-	BackgroundImage string `json:"background_image,omitempty" gorm:"default:''" redis:"background_image"`
-	Signature       string `json:"signature,omitempty" gorm:"default:''" redis:"signature"`
+	Avatar          string `json:"avatar" gorm:"default:''" redis:"avatar"`
+	BackgroundImage string `json:"background_image" gorm:"default:''" redis:"background_image"`
+	Signature       string `json:"signature" gorm:"default:''" redis:"signature"`
 }
 
 func (User) TableName() string {

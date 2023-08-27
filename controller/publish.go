@@ -58,12 +58,12 @@ func PublishList(c *gin.Context) {
 	reqUserId := c.Query("user_id")
 	userId, _ := strconv.ParseInt(reqUserId, 10, 64)
 	log.Println("获取到用户 Id：", userId)
-	token := c.Query("token")
+	token := c.GetInt64("token_user_id")
 	log.Println("获取到用户 token：", token)
 	videoService := service.GetVideoServiceInstance()
 	plainVideos, err := videoService.PublishList(userId)
 	videos := make([]VideoResponse, 0, config.VideoInitNum)
-	videos, err = getRespVideos(plainVideos, userId)
+	videos, err = getRespVideos(plainVideos, token)
 	if err != nil {
 		log.Println("getRespVideos:", err)
 	}
