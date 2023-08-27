@@ -71,12 +71,11 @@ import (
 */
 
 type FavoriteDao struct {
-	Id        int64
-	UserId    int64
-	VideoId   int64
-	Favorited int // 0: not favorite, 1: favorite
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	Id        int64     `gorm:"column:id"`
+	UserId    int64     `gorm:"column:user_id"`
+	VideoId   int64     `gorm:"column:video_id"`
+	Favorited int       `gorm:"column:is_favorite"` // 0: not favorite, 1: favorite //
+	CreatedAt time.Time `gorm:"column:created_at"`
 }
 
 func (FavoriteDao) TableName() string {
@@ -113,21 +112,21 @@ func VideoFavoritedCount(videoId int64) (int64, error) {
 	return count, nil
 }
 
-func UsersOfFavoriteVideo(videoId int64) ([]int64, int64, error) {
-	var userIdList []int64
-	result := Db.Model(&FavoriteDao{}).
-		Where("video_id=? and is_favorite=?", videoId, 1).
-		Pluck("user_id", &userIdList)
-	favoriteCnt := result.RowsAffected
-	if favoriteCnt == 0 {
-		return nil, 0, result.Error
-	}
-	if result.Error != nil {
-		log.Println("UsersOfFavoriteVideo:", result.Error.Error())
-		return nil, 0, result.Error
-	}
-	return userIdList, favoriteCnt, nil
-}
+//func UsersOfFavoriteVideo(videoId int64) ([]int64, int64, error) {
+//	var userIdList []int64
+//	result := Db.Model(&FavoriteDao{}).
+//		Where("video_id=? and is_favorite=?", videoId, 1).
+//		Pluck("user_id", &userIdList)
+//	favoriteCnt := result.RowsAffected
+//	if favoriteCnt == 0 {
+//		return nil, 0, result.Error
+//	}
+//	if result.Error != nil {
+//		log.Println("UsersOfFavoriteVideo:", result.Error.Error())
+//		return nil, 0, result.Error
+//	}
+//	return userIdList, favoriteCnt, nil
+//}
 
 // UpdateFavoriteInfo update favorite info
 func UpdateFavoriteInfo(userId int64, videoId int64, favorited int8) error {
@@ -165,7 +164,9 @@ func IsVideoFavoritedByUser(userId int64, videoId int64) (bool, error) {
 		return false, errors.New("current video is not exist")
 	}
 	if c == 0 {
-		return false, errors.New("current user haven not favorited current video")
+		//return false, errors.New("current user haven not favorited current video")
+		//实际上是没有点赞过，不应该返回的是错误
+		return false, nil
 	}
 	if result.Error != nil {
 		log.Println(result.Error)
@@ -173,27 +174,27 @@ func IsVideoFavoritedByUser(userId int64, videoId int64) (bool, error) {
 	return true, nil
 }
 
-func GetFavoriteCountByUser(userId int64) (int64, error) {
-	var count int64
-	err := Db.Model(FavoriteDao{}).Where(map[string]interface{}{"user_id": userId, "is_favorite": 1}).Count(&count).Error
-	if err != nil {
-		log.Println("FavoriteDao-Count: return count failed")
-		return -1, errors.New("find favorites count failed")
-	}
-	log.Println("FavoriteDao-Count: return count success")
-	return count, nil
-}
+//func GetFavoriteCountByUser(userId int64) (int64, error) {
+//	var count int64
+//	err := Db.Model(FavoriteDao{}).Where(map[string]interface{}{"user_id": userId, "is_favorite": 1}).Count(&count).Error
+//	if err != nil {
+//		log.Println("FavoriteDao-Count: return count failed")
+//		return -1, errors.New("find favorites count failed")
+//	}
+//	log.Println("FavoriteDao-Count: return count success")
+//	return count, nil
+//}
 
-func IsFavoritedByUser(userId int64, videoId int64) (bool, error) {
-	var favorite FavoriteDao
-	result := Db.Model(FavoriteDao{}).
-		Where("user_id = ? and video_id = ? and is_favorite = ?", userId, videoId, 1).
-		First(&favorite)
-	if result.RowsAffected == 0 {
-		return false, nil
-	}
-	return true, nil
-}
+//func IsFavoritedByUser(userId int64, videoId int64) (bool, error) {
+//	var favorite FavoriteDao
+//	result := Db.Model(FavoriteDao{}).
+//		Where("user_id = ? and video_id = ? and is_favorite = ?", userId, videoId, 1).
+//		First(&favorite)
+//	if result.RowsAffected == 0 {
+//		return false, nil
+//	}
+//	return true, nil
+//}
 
 func GettotalFavorited(userId int64) (int, error) {
 	UIdFVIdR := redis.Clients.UserId_FavoriteVideoIdR

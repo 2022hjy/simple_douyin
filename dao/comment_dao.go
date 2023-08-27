@@ -9,12 +9,11 @@ import (
 )
 
 type CommentDao struct {
-	Id        int64  //评论id
-	UserId    int64  //评论用户id
-	VideoId   int64  //视频id
-	Content   string //评论内容
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	Id        int64     `gorm:"column:id"`           //评论id
+	UserId    int64     `gorm:"column:user_info_id"` //评论用户id
+	VideoId   int64     `gorm:"column:video_id"`     //视频id
+	Content   string    `gorm:"column:content"`      //评论内容
+	CreatedAt time.Time `gorm:"column:created_at"`
 }
 
 // 删除的操作逻辑：物理删除

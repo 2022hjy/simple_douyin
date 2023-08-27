@@ -5,7 +5,6 @@ import (
 	"errors"
 	"log"
 	"math/rand"
-	"sync"
 	"time"
 
 	redisv9 "github.com/redis/go-redis/v9"
@@ -25,7 +24,7 @@ var Clients *RedisClients
 
 // MRLock (MutexRedisLock）keyAccessMapLock 用于保护 keyAccessMap
 // 注意：MRLock应该是一个指针类型，而不是一个值类型。因为您需要的是一个全局的互斥锁，而不是一个值的副本。
-var MRLock = &sync.Mutex{}
+//var MRLock = &sync.Mutex{}
 
 // RedisClients redis 客户端
 // 命名规则：[Key]_[Val]R
@@ -138,6 +137,7 @@ func InitRedis() {
 
 // SetValueWithRandomExp 设置 Redis 集合的批量添加，采取过期时间随机
 func SetValueWithRandomExp(client *redisv9.Client, key string, value interface{}) error {
+	InitRedis()
 	if client == nil {
 		return errors.New("client is nil")
 	}
@@ -294,7 +294,6 @@ func GetKeysAndUpdateExpiration(client *redisv9.Client, pattern string) (interfa
 	}
 
 	results := make(map[string]string)
-	//MRLock.Lock()
 	for i, key := range keys {
 		val, ok := values[i].(string)
 		if !ok {
@@ -311,7 +310,6 @@ func GetKeysAndUpdateExpiration(client *redisv9.Client, pattern string) (interfa
 			client.Expire(Ctx, key, 2*time.Minute)
 		}
 	}
-	//MRLock.Unlock()
 
 	// 如果只有一个键值对，直接返回键值对
 	if len(results) == 1 {

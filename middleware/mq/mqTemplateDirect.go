@@ -152,6 +152,7 @@ func InitMq() {
 // 在这里加一个初始化检查
 func SendMessage(routingKey string, string2 string) {
 	InitMq()
+	log.Println("我在 SendMessage 中，准备发送信息")
 	if ch == nil {
 		log.Println("Channel is nil. Trying to initialize again.")
 		if ch == nil {

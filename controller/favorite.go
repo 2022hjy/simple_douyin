@@ -25,6 +25,9 @@ type GetFavouriteListResponse struct {
 	VideoList  []VideoListResponse `json:"video_list"`
 }
 
+const ADD_FAVORITE = 1
+const CANCEL_FAVORITE = 2
+
 func init() {
 	favoriteService = service.GetFavoriteServiceInstance()
 }
@@ -36,10 +39,17 @@ var (
 // FavoriteAction 处理点赞操作
 func FavoriteAction(c *gin.Context) {
 	videoID, err := strconv.ParseInt(c.Query("video_id"), 10, 64)
+	actionType, err := strconv.ParseInt(c.Query("action_type"), 10, 64)
 
 	if err != nil {
 		log.Printf("解析 video_id 失败：%v", err)
 		c.JSON(http.StatusBadRequest, ErrorResponse{StatusCode: "0", StatusMsg: "无效的 video_id"})
+		return
+	}
+
+	if actionType != ADD_FAVORITE && actionType != CANCEL_FAVORITE {
+		log.Printf("action_type数值不正确：%v", err)
+		c.JSON(http.StatusBadRequest, ErrorResponse{StatusCode: "0", StatusMsg: "无效的 action_type"})
 		return
 	}
 
@@ -48,9 +58,15 @@ func FavoriteAction(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, ErrorResponse{StatusCode: "-1", StatusMsg: "收藏操作失败"})
 		return
 	}
-
-	log.Printf("用户 %d 成功点赞了视频 %d", c.GetInt64("token_user_id"), videoID)
-	c.JSON(http.StatusOK, FavoriteActionResponse{Response{StatusCode: 0, StatusMsg: "收藏操作成功"}})
+	switch actionType {
+	case ADD_FAVORITE:
+		log.Printf(" service 内，用户 %d 成功点赞了视频 %d", c.GetInt64("token_user_id"), videoID)
+		break
+	case CANCEL_FAVORITE:
+		log.Printf("service 内，用户 %d 成功取消点赞了视频 %d", c.GetInt64("token_user_id"), videoID)
+		break
+	}
+	c.JSON(http.StatusOK, FavoriteActionResponse{Response{StatusCode: 0, StatusMsg: "点赞/取消点赞：功能操作成功"}})
 }
 
 // FavoriteList 获取收藏列表

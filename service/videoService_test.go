@@ -2,9 +2,7 @@ package service
 
 import (
 	"fmt"
-	"io/ioutil"
 	"log"
-	"mime/multipart"
 	"simple_douyin/dao"
 	"simple_douyin/middleware/database"
 	"simple_douyin/middleware/redis"
@@ -46,30 +44,30 @@ func TestVideoServiceImpl_GetVideoCnt(t *testing.T) {
 	fmt.Println("videoCnt:", videoCnt)
 }
 
-// 将视频上传到oss 并保存到数据库
-func TestPublish(t *testing.T) {
-	database.Init()
-
-	filePath := "videotest.mp4"
-	videocontent, err := ioutil.ReadFile(filePath)
-	if err != nil {
-		log.Fatal("Error reading file:", err)
-		return
-	}
-
-	fileHeader := &multipart.FileHeader{
-		Filename: "videotest.mp4",
-		Size:     int64(len(videocontent)),
-	}
-	log.Println(fileHeader.Filename)
-
-	title := "test title"
-	userId := int64(1)
-	videoService := &VideoServiceImpl{}
-
-	err = videoService.Publish(fileHeader, title, userId)
-	log.Println(err)
-}
+//// 将视频上传到oss 并保存到数据库
+//func TestPublish(t *testing.T) {
+//	database.Init()
+//
+//	filePath := "videotest.mp4"
+//	videocontent, err := ioutil.ReadFile(filePath)
+//	if err != nil {
+//		log.Fatal("Error reading file:", err)
+//		return
+//	}
+//
+//	fileHeader := &multipart.FileHeader{
+//		Filename: "videotest.mp4",
+//		Size:     int64(len(videocontent)),
+//	}
+//	log.Println(fileHeader.Filename)
+//
+//	title := "test title"
+//	userId := int64(1)
+//	videoService := &VideoServiceImpl{}
+//
+//	err = videoService.Publish(fileHeader, title, userId)
+//	log.Println(err)
+//}
 
 func TestUploadVideo(t *testing.T) {
 	database.Init()

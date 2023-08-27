@@ -7,10 +7,8 @@ import (
 
 func TestSetValueWithRandomExp(t *testing.T) {
 	InitRedis()
-
 	key := "test-key-random"
 	value := "test-value-random"
-
 	err := SetValueWithRandomExp(Clients.Test, key, value)
 	if err != nil {
 		t.Errorf("Error setting value: %v", err)
@@ -43,7 +41,7 @@ func TestSetValue(t *testing.T) {
 	}
 }
 
-func TestGetKeysAndUpdateExpiration(t *testing.T) {
+func TestGetKeysAndUpdateExpiration_v1(t *testing.T) {
 	InitRedis()
 
 	key := "test-key-get-update"
@@ -66,6 +64,48 @@ func TestGetKeysAndUpdateExpiration(t *testing.T) {
 		t.Errorf("Expected value %s, got %s", value, val)
 	}
 }
+
+// 这个函数对批量插入以相同key的前提下，后续放入 Value 会覆盖前面的 Value，因此如果需要批量插入，传入的 Value 应该是一个数组
+//func TestGetKeysAndUpdateExpiration_v2(t *testing.T) {
+//	InitRedis()
+//
+//	key := "test-key-get-update"
+//	value_1 := "test-value_1-get-update-1"
+//	value_2 := "test-value_2-get-update-2"
+//	value_3 := "test-value_3-get-update-3"
+//	value_4 := "test-value_4-get-update-4"
+//
+//	err := SetValueWithRandomExp(Clients.Test, key, value_1)
+//	if err != nil {
+//		t.Errorf("Error setting value_1: %v", err)
+//	}
+//	err2 := SetValueWithRandomExp(Clients.Test, key, value_2)
+//	if err2 != nil {
+//		t.Errorf("Error setting value_2: %v", err2)
+//	}
+//	err3 := SetValueWithRandomExp(Clients.Test, key, value_3)
+//	if err3 != nil {
+//		t.Errorf("Error setting value_3: %v", err3)
+//	}
+//	err4 := SetValueWithRandomExp(Clients.Test, key, value_4)
+//	if err4 != nil {
+//		t.Errorf("Error setting value_4: %v", err4)
+//	}
+//
+//	valInterface, err := GetKeysAndUpdateExpiration(Clients.Test, key)
+//	log.Printf("valInterface:%v\n", valInterface)
+//
+//	if err != nil {
+//		t.Errorf("Error getting value_1: %v", err)
+//	}
+//
+//	val, ok := valInterface.(string)
+//	if !ok {
+//		t.Errorf("Expected string value_1, got %T", valInterface)
+//	} else if val != value_1 {
+//		t.Errorf("Expected value_1 %s, got %s", value_1, val)
+//	}
+//}
 
 func TestDeleteKey(t *testing.T) {
 	InitRedis()

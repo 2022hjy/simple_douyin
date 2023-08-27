@@ -41,7 +41,6 @@ func (c *CommentService) Comment(userId int64, videoId int64, content string) (c
 		VideoId:   videoId,
 		Content:   content,
 		CreatedAt: time.Unix(time.Now().Unix(), 0),
-		UpdatedAt: time.Unix(time.Now().Unix(), 0),
 	}
 	//存入数据库
 	// TODO 采取消息队列的方式，异步使用 rabbitmq存入数据库
@@ -57,30 +56,6 @@ func (c *CommentService) Comment(userId int64, videoId int64, content string) (c
 	//返回给前端的数据
 	return comment, nil
 }
-
-/*
-func (c *CommentService) DeleteComment(videoId int64, commentId int64) error {
-	//删除数据库中的评论，删除redis中的评论
-	//操作逻辑：先更新数据库，再更新redis
-
-
-	err := dao.DeleteComment(commentId)
-	if err != nil {
-		log.Fatalf("delete comment failed, err:%v\n", err)
-		return errors.New("delete comment failed")
-	}
-
-	err = deleteCommentRedis(videoId, commentId)
-	if err != nil {
-
-		log.Fatalf("delete comment in redis failed, err:%v\n", err)
-		return err // 示例：返回错误
-	}
-
-	log.Printf("successfully delete CommentDao in redis, commentId:%v\n", commentId)
-	return nil
-}
-*/
 
 // DeleteComment 使用分布式锁，防止并发删除；同时使用了 Transaction 事务，保证数据库和缓存的一致性
 func (c *CommentService) DeleteComment(videoId int64, commentId int64) error {
@@ -114,6 +89,8 @@ func (c *CommentService) DeleteComment(videoId int64, commentId int64) error {
 
 func (c *CommentService) GetCommentList(videoId int64) ([]dao.CommentDao, error) {
 	commentList, err := c.getCommentListFromRedis(videoId)
+	log.Println("现在从redis中获取commentList")
+	log.Println("commentList:", commentList)
 	if err != nil {
 		return nil, err
 	}
@@ -136,6 +113,7 @@ func (c *CommentService) getCommentListFromRedis(videoId int64) ([]dao.CommentDa
 	videoIdToStr := strconv.FormatInt(videoId, 10)
 	commentIdListInterface, err := redis.GetKeysAndUpdateExpiration(VidCidR, videoIdToStr)
 	if err != nil {
+		// todo 这里出现了问题
 		log.Println("read redis vId failed", err)
 		return nil, err
 	}
@@ -179,7 +157,6 @@ func (c *CommentService) getCommentListFromDB(videoId int64) ([]dao.CommentDao, 
 		return nil, err
 	}
 	return commentList, nil
-	//TODO: 看看能不能考虑把评论按照时间排序
 }
 
 func updateCommentRedis(videoId int64, commentId int64, comment dao.CommentDao) {
@@ -221,47 +198,6 @@ func updateCommentRedis(videoId int64, commentId int64, comment dao.CommentDao) 
 		return
 	}
 }
-
-/*
-func deleteCommentRedis(videoId int64, commentId int64, comment dao.CommentDao) {
-	//1.删除 videoId -> commentId
-	VCidClient := redis.Clients.VideoId_CommentIdR
-	if VCidClient == nil {
-		log.Fatalf("redis client is nil")
-		return
-	}
-	vId := strconv.FormatInt(videoId, 10)
-	cId := strconv.FormatInt(commentId, 10)
-
-	/*这一步存在 bug，因为删除视频的时候，会删除视频下的所有评论，因此需要删除对应的关联关系
-	err := redis.DeleteKey(VCidClient, vId)
-	if err != nil {
-		log.Fatalf("delete redis failed, err:%v\n", err)
-		return
-	}
-*/
-/*
-	err := VCidClient.SRem(vId, cId).Err()
-	if err != nil {
-		log.Printf("delete redis failed, err:%v\n", err)
-		//在处理错误时，使用log.Fatalf可能不是最佳选择，因为它会导致程序终止。如果这是预期行为，那么没有问题；但如果不是，你应该考虑使用log.Println或log.Printf等不会导致程序终止的日志等级。
-		return
-	}
-
-	//2.删除 commentId -> comment
-	CCidClient := redis.Clients.CommentId_CommentR
-	if CCidClient == nil {
-		log.Fatalf("redis client is nil")
-		return
-	}
-	err = redis.DeleteKey(CCidClient, cId)
-	if err != nil {
-		log.Fatalf("delete redis failed, err:%v\n", err)
-		return
-	}
-	log.Printf("successfully delete comment in redis, commentId:%v\n", commentId)
-}
-*/
 
 // 牛刀小试，尝试使用分布式锁，防止并发删除
 func deleteCommentRedis(videoId int64, commentId int64) error {
