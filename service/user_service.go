@@ -133,6 +133,8 @@ type QueryUserInfoFlow struct {
 	totalFavorited int64
 	workCount      int64
 	favoriteCount  int64
+
+	lock sync.RWMutex // 加入互斥锁（这个是一个特殊的互斥锁，允许多个内容读取，但是只允许一个内容写入
 }
 
 func (f *QueryUserInfoFlow) Do() (*UserInfo, error) {
@@ -142,6 +144,9 @@ func (f *QueryUserInfoFlow) Do() (*UserInfo, error) {
 	if err := f.packageInfo(); err != nil {
 		return nil, err
 	}
+	f.lock.Lock()         // 锁住资源
+	defer f.lock.Unlock() // 释放锁
+	log.Println("***f.userInfo:***", f.userInfo)
 	return f.userInfo, nil
 }
 
@@ -149,8 +154,11 @@ func (f *QueryUserInfoFlow) prepareInfo() error {
 	var wg sync.WaitGroup
 	wg.Add(3)
 	errChan := make(chan error, 2)
+
 	go func() {
 		defer wg.Done()
+		f.lock.Lock()         // 锁住资源
+		defer f.lock.Unlock() // 释放锁
 		userDao := dao.NewUserDaoInstance()
 		// 1. 先从redis中获取用户信息
 		if user, err := userDao.GetUserFromRedisById(f.userId); err == nil {
@@ -170,19 +178,28 @@ func (f *QueryUserInfoFlow) prepareInfo() error {
 			log.Fatal(err)
 		}
 		f.user = user
+		log.Println("正在 异步获取 user 信息")
+		log.Println("f.user:", f.user)
+		log.Println("f.user.UserId:", f.user.UserId)
+		log.Printf("f.user.UserId:%v\n", f.user.UserId)
 	}()
+
 	go func() {
 		defer wg.Done()
+		f.lock.Lock()         // 锁住资源
+		defer f.lock.Unlock() // 释放锁
 		// 获取用户的关注数、粉丝数、是否关注
 		followService := NewFSIInstance()
 		followCount, err := followService.GetFollowerCnt(f.userId)
 		if err == nil {
 			f.followerCount = followCount
+			//f.followerCount = 999
 		}
 		// todo 日志记录一下为什么获取关注数失败
 		followingCount, err := followService.GetFollowingCnt(f.userId)
 		if err == nil {
 			f.followCount = followingCount
+			//f.followCount = 999
 		}
 		// todo 日志记录一下为什么获取粉丝数失败
 		isFollow, err := followService.CheckIsFollowing(f.userId, f.tokenUserId)
@@ -190,20 +207,38 @@ func (f *QueryUserInfoFlow) prepareInfo() error {
 			errChan <- err
 			return
 		}
+		//todo  测试数据
 		f.isFollow = isFollow
+
+		log.Println("f.followerCount:", f.followerCount)
+		log.Println("f.followCount:", f.followCount)
+		log.Println("f.isFollow:", f.isFollow)
 	}()
+
 	go func() {
 		defer wg.Done()
+		f.lock.Lock()         // 锁住资源
+		defer f.lock.Unlock() // 释放锁
+
 		f.totalFavorited = 0
 		f.favoriteCount = 0
+		f.workCount = 0
+		err := errors.New("error")
+
 		videoService := GetVideoServiceInstance()
-		workCnt, err := videoService.GetVideoCnt(f.userId)
+		f.workCount, err = videoService.GetVideoCnt(f.userId)
+		_, f.favoriteCount, err = dao.GetFavoriteIdListByUserId(f.userId)
+
 		if err != nil {
-			// todo 日志记录一下为什么获取作品数失败
+			log.Println("user_service 内部的 GetFavoriteIdListByUserId err:", err)
 		}
-		f.workCount = workCnt
+		log.Println("f.workCount:%v\n", f.workCount)
+		log.Println("f.favoriteCount:%v\n", f.favoriteCount)
 	}()
+
+	log.Println("wait for wg")
 	wg.Wait()
+	log.Println("...........already finish waiting..........")
 	select {
 	case err := <-errChan:
 		return err
@@ -213,6 +248,8 @@ func (f *QueryUserInfoFlow) prepareInfo() error {
 }
 
 func (f *QueryUserInfoFlow) packageInfo() error {
+	f.lock.Lock()         // 锁住资源
+	defer f.lock.Unlock() // 释放锁
 	f.userInfo = &UserInfo{
 		User:           f.user,
 		FollowerCount:  f.followerCount,
@@ -222,6 +259,9 @@ func (f *QueryUserInfoFlow) packageInfo() error {
 		WorkCount:      f.workCount,
 		FavoriteCount:  f.favoriteCount,
 	}
+
+	log.Println("==========f.userInfo:=======", f.userInfo)
+
 	return nil
 }
 

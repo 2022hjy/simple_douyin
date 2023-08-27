@@ -90,7 +90,7 @@ func (c *CommentService) DeleteComment(videoId int64, commentId int64) error {
 func (c *CommentService) GetCommentList(videoId int64) ([]dao.CommentDao, error) {
 	commentList, err := c.getCommentListFromRedis(videoId)
 	log.Println("现在从redis中获取commentList")
-	log.Println("commentList:", commentList)
+	log.Println("从 Redis 里面获取的commentList:", commentList)
 	if err != nil {
 		return nil, err
 	}

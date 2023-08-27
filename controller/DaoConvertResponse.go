@@ -1,9 +1,10 @@
 package controller
 
 import (
+	"errors"
+	"log"
 	"simple_douyin/dao"
 	"simple_douyin/service"
-	"strconv"
 	"time"
 )
 
@@ -33,9 +34,10 @@ func ConvertDBVideoToResponse(dbVideo dao.Video, tokenId int64) (VideoResponse, 
 	// 使用 QueryUserInfo 获取视频作者的信息
 	userInfo, err := userService.QueryUserInfo(dbVideo.UserInfoId, tokenId) // 假设 tokenUserId 为0
 	if err != nil {
-		return VideoResponse{}, err
+		return VideoResponse{999, UserResponse{}, "999", "999", 666, 666, false, "WRONG GET MESSAGE"}, errors.New(" userInfo 的获取出问题")
 	}
 
+	log.Printf("在 controller 的 convertVideo 里面，userInfo 的内容是：", userInfo)
 	// 将 UserInfo 转换为 UserResponse
 	userResponse := UserResponse{
 		Id:              userInfo.User.UserId,
@@ -46,10 +48,12 @@ func ConvertDBVideoToResponse(dbVideo dao.Video, tokenId int64) (VideoResponse, 
 		Avatar:          userInfo.User.Avatar,
 		BackgroundImage: userInfo.User.BackgroundImage,
 		Signature:       userInfo.User.Signature,
-		TotalFavorited:  strconv.FormatInt(userInfo.TotalFavorited, 10), // 将 int64 转换为 string
+		TotalFavorited:  userInfo.TotalFavorited, // 将 int64 转换为 string
 		WorkCount:       userInfo.WorkCount,
 		FavoriteCount:   userInfo.FavoriteCount,
 	}
+
+	log.Println("在 controller 的 convertVideo 里面，userResponse 的内容是：", userResponse)
 
 	var isFavorite bool
 	if dbVideo.IsFavorite == 1 {
@@ -87,7 +91,8 @@ func ConvertDBCommentToResponse(comment dao.CommentDao, tokenId int64) CommentRe
 	// 使用 QueryUserInfo 获取用户信息
 	userInfo, err := userService.QueryUserInfo(comment.UserId, tokenId) // 假设 tokenUserId 为0
 	if err != nil {
-		// 处理错误或记录日志
+		log.Println("在 controller 的 convertComment 里面，userInfo 的获取出问题")
+		return CommentResponse{}
 	}
 
 	// 将 UserInfo 转换为 UserResponse
@@ -100,7 +105,7 @@ func ConvertDBCommentToResponse(comment dao.CommentDao, tokenId int64) CommentRe
 		Avatar:          userInfo.User.Avatar,
 		BackgroundImage: userInfo.User.BackgroundImage,
 		Signature:       userInfo.User.Signature,
-		TotalFavorited:  strconv.FormatInt(userInfo.TotalFavorited, 10),
+		TotalFavorited:  userInfo.TotalFavorited, // 将 int64 转换为 string
 		WorkCount:       userInfo.WorkCount,
 		FavoriteCount:   userInfo.FavoriteCount,
 	}

@@ -42,7 +42,7 @@ type UserResponse struct {
 	FollowerCount   int64  `json:"follower_count,omitempty"`
 	IsFollow        bool   `json:"is_follow,omitempty"`
 	FavoriteCount   int64  `json:"favorite_count"`  // 喜欢数
-	TotalFavorited  string `json:"total_favorited"` // 获赞数量
+	TotalFavorited  int64  `json:"total_favorited"` // 获赞数量
 	WorkCount       int64  `json:"work_count"`      // 作品数
 }
 

@@ -137,7 +137,6 @@ func InitRedis() {
 
 // SetValueWithRandomExp 设置 Redis 集合的批量添加，采取过期时间随机
 func SetValueWithRandomExp(client *redisv9.Client, key string, value interface{}) error {
-	InitRedis()
 	if client == nil {
 		return errors.New("client is nil")
 	}
