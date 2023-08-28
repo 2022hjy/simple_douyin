@@ -212,9 +212,9 @@ func (f *QueryUserInfoFlow) prepareInfo() error {
 		//todo  测试数据
 		f.isFollow = isFollow
 
-		//log.Println("f.followerCount:", f.followerCount)
-		//log.Println("f.followCount:", f.followCount)
-		//log.Println("f.isFollow:", f.isFollow)
+		log.Println("f.followerCount:", f.followerCount)
+		log.Println("f.followCount:", f.followCount)
+		log.Println("f.isFollow:", f.isFollow)
 	}()
 
 	go func() {

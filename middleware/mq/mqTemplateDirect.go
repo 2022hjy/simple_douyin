@@ -1,9 +1,8 @@
 package mq
 
 import (
-	"log"
-
 	"github.com/streadway/amqp"
+	"log"
 	"simple_douyin/config"
 )
 
@@ -141,7 +140,7 @@ func InitMq() {
 	//signal.Notify(sig, os.Interrupt, syscall.SIGTERM)
 	//<-sig
 
-	closeResources(ch, conn)
+	//closeResources(ch, conn)
 }
 
 // SendMessage 用于发送消息到交换器, routingKey为路由键，body为消息内容, 交换器名为events
