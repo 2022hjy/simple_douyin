@@ -1,13 +1,12 @@
 package controller
 
 import (
+	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
+	"simple_douyin/dao"
 	"strconv"
 	"time"
-
-	"github.com/gin-gonic/gin"
-	"simple_douyin/dao"
 )
 
 type ChatResponse struct {
@@ -60,17 +59,26 @@ func MessageChat(c *gin.Context) {
 		return
 	}
 	latestTime := time.Unix(covPreMsgTime, 0)
-	messages, err := messageService.MessageChat(FromUserID, ToUserID, latestTime)
-	log.Println(messages)
-	if err != nil {
-		c.JSON(http.StatusOK, ChatResponse{
-			Response: Response{StatusCode: -1, StatusMsg: "MessageChat Error"},
-		})
-	} else {
-		r := ChatResponse{
-			Response: Response{
-				StatusCode: 0, StatusMsg: "MessageChat Success!"}, MessageList: messages}
-		log.Println("r:", r)
-		c.JSON(http.StatusOK, r)
+	// 创建一个定时器，每隔一段时间触发一次消息查询操作
+	pollInterval := 10 * time.Second // 轮询间隔
+	for {
+		messages, err := messageService.MessageChat(FromUserID, ToUserID, latestTime)
+		if err != nil {
+			c.JSON(http.StatusOK, ChatResponse{
+				Response: Response{StatusCode: -1, StatusMsg: "MessageChat Error"},
+			})
+			return
+		} else {
+			r := ChatResponse{
+				Response: Response{
+					StatusCode: 0, StatusMsg: "MessageChat Success!"}, MessageList: messages}
+			c.JSON(http.StatusOK, r)
+		}
+
+		// 更新 latestTime 为当前时间，以便下次查询从最新的消息时间开始
+		latestTime = time.Now()
+
+		// 等待轮询间隔，然后再次执行消息查询
+		time.Sleep(pollInterval)
 	}
 }
