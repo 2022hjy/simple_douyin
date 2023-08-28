@@ -4,7 +4,6 @@ import (
 	"github.com/RaymondCode/simple-demo/service"
 	"github.com/gin-gonic/gin"
 	"simple_douyin/middleware"
-	"simple_douyin/middleware/database"
 )
 
 func main() {
@@ -16,7 +15,7 @@ func main() {
 
 	middleware.InitMiddleware(ApiRouter)
 
-	database.Init()
+	//database.Init()
 
 	InitRouter(ApiRouter)
 

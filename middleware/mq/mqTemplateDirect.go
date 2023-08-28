@@ -1,8 +1,9 @@
 package mq
 
 import (
-	"github.com/streadway/amqp"
 	"log"
+
+	"github.com/streadway/amqp"
 	"simple_douyin/config"
 )
 

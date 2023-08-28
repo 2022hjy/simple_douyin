@@ -22,12 +22,12 @@ type FriendUser struct {
 	MsgType int64  `json:"msg_type"`
 }
 type Follow struct {
-	Id          int64  //关系ID
-	UserId      int64  //用户ID
-	FollowingId int64  //关注的用户ID
-	Followed    int8   //是否已关注，1表示已关注，0表示未关注
-	CreatedAt   string //记录创建时间
-	UpdatedAt   string //记录更新时间
+	Id          int64  `gorm:"column:id"`           //关系ID
+	UserId      int64  `gorm:"column:user_id"`      //用户ID
+	FollowingId int64  `gorm:"column:following_id"` //关注的用户ID
+	Followed    int8   `gorm:"column:is_followed"`  //是否已关注，1表示已关注，0表示未关注
+	CreatedAt   string `gorm:"column:created_at"`   //记录创建时间
+	UpdatedAt   string `gorm:"column:updated_at"`   //记录更新时间
 }
 
 func (Follow) TableName() string {
@@ -60,7 +60,7 @@ func (*FollowDao) FindEverFollowing(userId int64, targetId int64) (*Follow, erro
 	err := database.Db.
 		Where("user_id = ?", userId).
 		Where("following_id = ?", targetId).
-		Where("is_followed = ? or is_followed = ?", 0, 1).
+		//Where("is_followed = ? or is_followed = ?", 0, 1).
 		Take(&follow).Error
 	// 当查询出现错误时，日志打印err msg，并return err.
 	if nil != err {

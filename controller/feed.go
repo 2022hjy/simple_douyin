@@ -10,7 +10,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"simple_douyin/config"
 	"simple_douyin/dao"
-	"simple_douyin/service"
 )
 
 func VideoRespondWithError(c *gin.Context, statusCode int32, errMsg string) {
@@ -18,12 +17,13 @@ func VideoRespondWithError(c *gin.Context, statusCode int32, errMsg string) {
 }
 
 var (
-	videoService *service.VideoServiceImpl
+//videoService *service.VideoServiceImpl
+
 )
 
-func init() {
-	videoService = service.GetVideoServiceInstance()
-}
+//func init() {
+//	videoService = service.GetVideoServiceInstance()
+//}
 
 type FeedResponse struct {
 	Response
