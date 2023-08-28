@@ -31,10 +31,10 @@ func SendMessage(message Message) (Message, error) {
 
 // MessageChat 当前登录用户和其他指定用户的聊天记录
 // TODO 是否要考虑上次最新消息时间，还是直接获取全部聊天记录
-func MessageChat(loginUserId int64, targetUserId int64) ([]Message, error) {
+func MessageChat(loginUserId int64, targetUserId int64, latestTime time.Time) ([]Message, error) {
 	messages := make([]Message, 0, config.MessageInitNum)
-	result := database.Db.Where("(from_user_id = ? and to_user_id = ?) or (from_user_id = ? and to_user_id = ?)",
-		loginUserId, targetUserId, targetUserId, loginUserId).
+	result := database.Db.Where("(create_time > ? and create_time < ? ) and ((from_user_id = ? and to_user_id = ?) or (from_user_id = ? and to_user_id = ?))",
+		latestTime, time.Now(), loginUserId, targetUserId, targetUserId, loginUserId).
 		Order("create_time ASC").
 		Find(&messages)
 	if result.RowsAffected == 0 {

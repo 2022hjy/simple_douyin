@@ -43,9 +43,9 @@ func (c *MessageServiceImpl) SendMessage(fromUserId int64, toUserId int64, conte
 	return nil
 }
 
-func (c *MessageServiceImpl) MessageChat(loginUserId int64, targetUserId int64) ([]dao.Message, error) {
+func (c *MessageServiceImpl) MessageChat(loginUserId int64, targetUserId int64, latestTime time.Time) ([]dao.Message, error) {
 	messages := make([]dao.Message, 0, config.MessageInitNum)
-	messages, err := dao.MessageChat(loginUserId, targetUserId)
+	messages, err := dao.MessageChat(loginUserId, targetUserId, latestTime)
 	if err != nil {
 		log.Println("MessageChat Service出错:", err.Error())
 		return []dao.Message{}, err

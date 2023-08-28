@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"simple_douyin/dao"
@@ -51,10 +52,15 @@ func MessageChat(c *gin.Context) {
 	if err != nil {
 		MessageRespondWithError(c, -1, "MessageChat Error: "+err.Error())
 	}
-	//preMsgTime := c.Query("pre_msg_time")
 	preMsgTime := c.Query("pre_msg_time")
 	log.Println("pre_msg_time", preMsgTime)
-	messages, err := messageService.MessageChat(FromUserID, ToUserID)
+	covPreMsgTime, err := strconv.ParseInt(preMsgTime, 10, 64)
+	if err != nil {
+		log.Println("preMsgTime 参数错误")
+		return
+	}
+	latestTime := time.Unix(covPreMsgTime, 0)
+	messages, err := messageService.MessageChat(FromUserID, ToUserID, latestTime)
 	log.Println(messages)
 	if err != nil {
 		c.JSON(http.StatusOK, ChatResponse{
