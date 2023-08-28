@@ -34,4 +34,11 @@ func TestUserService_QuerySelfInfo(t *testing.T) {
 	}
 	resJson, _ := json.Marshal(res)
 	t.Log(string(resJson))
+	info, err := testService.QuerySelfInfo(2)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	infoJson, _ := json.Marshal(info)
+	t.Log(string(infoJson))
 }

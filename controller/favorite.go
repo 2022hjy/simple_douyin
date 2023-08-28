@@ -6,7 +6,6 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"simple_douyin/service"
 )
 
 // ErrorResponse VideoResponse 返回给 Controller 层的 VideoResponse 结构体
@@ -28,12 +27,12 @@ type GetFavouriteListResponse struct {
 const ADD_FAVORITE = 1
 const CANCEL_FAVORITE = 2
 
-func init() {
-	favoriteService = service.GetFavoriteServiceInstance()
-}
+//func init() {
+//	favoriteService = service.GetFavoriteServiceInstance()
+//}
 
 var (
-	favoriteService *service.FavoriteService
+// favoriteService *service.FavoriteService
 )
 
 // FavoriteAction 处理点赞操作

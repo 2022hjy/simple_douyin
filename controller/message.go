@@ -7,7 +7,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"simple_douyin/dao"
-	"simple_douyin/service"
 )
 
 type ChatResponse struct {
@@ -15,13 +14,11 @@ type ChatResponse struct {
 	MessageList []dao.Message `json:"message_list"`
 }
 
-var (
-	messageService *service.MessageServiceImpl
-)
+var ()
 
-func init() {
-	messageService = service.GetMessageServiceInstance()
-}
+//func init() {
+//	messageService = service.GetMessageServiceInstance()
+//}
 
 func MessageRespondWithError(c *gin.Context, statusCode int, errMsg string) {
 	c.JSON(http.StatusOK, Response{StatusCode: int32(statusCode), StatusMsg: errMsg})

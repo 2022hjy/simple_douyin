@@ -9,10 +9,6 @@ import (
 	"simple_douyin/service"
 )
 
-var (
-	userService = service.NewUserServiceInstance()
-)
-
 type LoginResponse struct {
 	Response
 	*service.Credential

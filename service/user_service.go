@@ -219,20 +219,26 @@ func (f *QueryUserInfoFlow) prepareInfo() error {
 		f.lock.Lock()         // 锁住资源
 		defer f.lock.Unlock() // 释放锁
 
-		f.totalFavorited = 0
-		f.favoriteCount = 0
-		f.workCount = 0
-		err := errors.New("error")
-
 		videoService := GetVideoServiceInstance()
-		f.workCount, err = videoService.GetVideoCnt(f.userId)
-		_, f.favoriteCount, err = dao.GetFavoriteIdListByUserId(f.userId)
-
+		workCount, err := videoService.GetVideoCnt(f.userId)
+		if err != nil {
+			// todo 日志记录一下为什么获取作品数失败
+			log.Println(err.Error())
+		} else {
+			f.workCount = workCount
+		}
+		_, favoriteCount, err := dao.GetFavoriteIdListByUserId(f.userId)
+		if err != nil {
+			// todo 日志记录一下为什么获取作品数失败
+			log.Println(err.Error())
+		} else {
+			f.favoriteCount = favoriteCount
+		}
 		if err != nil {
 			log.Println("user_service 内部的 GetFavoriteIdListByUserId err:", err)
 		}
-		log.Println("f.workCount:%v\n", f.workCount)
-		log.Println("f.favoriteCount:%v\n", f.favoriteCount)
+		//log.Println("f.workCount:%v\n", f.workCount)
+		//log.Println("f.favoriteCount:%v\n", f.favoriteCount)
 	}()
 
 	log.Println("wait for wg")

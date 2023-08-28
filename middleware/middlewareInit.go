@@ -4,7 +4,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"simple_douyin/log"
 	"simple_douyin/middleware/ratelimit"
-	"simple_douyin/middleware/redis"
 )
 
 //func init() {
@@ -23,7 +22,7 @@ func InitMiddleware(apiRouter *gin.RouterGroup) {
 	//apiRouter.Use(xssMiddleware.RemoveXss())
 
 	//初始化 Redis
-	redis.InitRedis()
+	//redis.InitRedis()
 
 	// 初始化限流器
 	rateControlHandler, err := ratelimit.RateControl()

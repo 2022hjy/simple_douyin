@@ -5,7 +5,6 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"simple_douyin/service"
 )
 
 const (
@@ -18,13 +17,13 @@ func respondWithError(c *gin.Context, statusCode int, errMsg string) {
 }
 
 var (
-	commentService *service.CommentService
+// commentService *service.CommentService
 )
 
-func init() {
-	commentService = service.GetCommentServiceInstance()
-	userService = service.NewUserServiceInstance()
-}
+//func init() {
+//	commentService = service.GetCommentServiceInstance()
+//	userService = service.NewUserServiceInstance()
+//}
 
 type CommentListResponse struct {
 	Response
