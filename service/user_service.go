@@ -147,7 +147,6 @@ func (f *QueryUserInfoFlow) Do() (*UserInfo, error) {
 	defer f.lock.Unlock() // 释放锁
 
 	//log.Println("***f.userInfo:***", f.userInfo)
-
 	return f.userInfo, nil
 }
 

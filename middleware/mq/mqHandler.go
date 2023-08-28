@@ -39,9 +39,9 @@ func handleCommentMessage(routingKey, body string) {
 
 func handleLikeMessage(routingKey, body string) {
 	switch routingKey {
-	case "like_add":
+	case "favorite_add":
 		AddLike(body)
-	case "like_remove":
+	case "favorite_remove":
 		RemoveLike(body)
 	default:
 		log.Println("Unknown routing key:", routingKey)

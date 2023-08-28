@@ -51,8 +51,9 @@ func MessageChat(c *gin.Context) {
 	if err != nil {
 		MessageRespondWithError(c, -1, "MessageChat Error: "+err.Error())
 	}
-	preMsgTime := c.Query("content")
-	log.Println("content", preMsgTime)
+	//preMsgTime := c.Query("pre_msg_time")
+	preMsgTime := c.Query("pre_msg_time")
+	log.Println("pre_msg_time", preMsgTime)
 	messages, err := messageService.MessageChat(FromUserID, ToUserID)
 	log.Println(messages)
 	if err != nil {
@@ -60,6 +61,10 @@ func MessageChat(c *gin.Context) {
 			Response: Response{StatusCode: -1, StatusMsg: "MessageChat Error"},
 		})
 	} else {
-		c.JSON(http.StatusOK, ChatResponse{Response: Response{StatusCode: 0, StatusMsg: "MessageChat Success!"}, MessageList: messages})
+		r := ChatResponse{
+			Response: Response{
+				StatusCode: 0, StatusMsg: "MessageChat Success!"}, MessageList: messages}
+		log.Println("r:", r)
+		c.JSON(http.StatusOK, r)
 	}
 }

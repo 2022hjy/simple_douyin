@@ -315,6 +315,7 @@ func (followService *FollowServiceImp) BuildFriendUser(userId int64, friendUsers
 
 		// 好友其他属性赋值
 		friendUsers[i].IsFollow = true
+
 		//friendUsers[i].Avatar = config.CUSTOM_DOMAIN + config.OSS_USER_AVATAR_DIR
 
 		// 调用message模块获取聊天记录

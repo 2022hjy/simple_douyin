@@ -4,8 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"github.com/go-redsync/redsync/v4"
-	"github.com/go-redsync/redsync/v4/redis/goredis/v9"
 	"gorm.io/gorm"
 	"log"
 	"simple_douyin/config"
@@ -238,24 +236,20 @@ func deleteCommentRedis(videoId int64, commentId int64) error {
 	cId := config.CommentId_Comment_KEY_PREFIX + strconv.FormatInt(commentId, 10)
 
 	// 创建一个红色同步互斥锁
-	pool := goredis.NewPool(VCidClient) // or, pool := goredis.NewPool(&redis.Pool{…})
-	rs := redsync.New(pool)
-	mutexName := "lock:deleteCommentRedis:" + vId + ":" + cId
-	mutex := rs.NewMutex(mutexName, redsync.WithExpiry(8*time.Second))
-	if err := mutex.Lock(); err != nil {
-		log.Printf("Failed to acquire lock, err:%v\n", err)
-		return err
-	}
-	defer mutex.Unlock()
+	//pool := goredis.NewPool(VCidClient) // or, pool := goredis.NewPool(&redis.Pool{…})
+	//rs := redsync.New(pool)
+	//mutexName := "lock:deleteCommentRedis:" + vId + ":" + cId
+	//mutex := rs.NewMutex(mutexName, redsync.WithExpiry(8*time.Second))
+	//if err := mutex.Lock(); err != nil {
+	//	log.Printf("Failed to acquire lock, err:%v\n", err)
+	//	return err
+	//}
 
-	ctx := context.Background() // 创建一个新的context
-	err := VCidClient.SRem(ctx, vId, cId).Err()
-
+	err := redis.DeleteKey(redis.Clients.VideoId_CommentIdR, vId)
 	if err != nil {
 		log.Printf("delete redis failed, err:%v\n", err)
 		return err
 	}
-
 	//2.删除 commentId -> comment
 	CCidClient := redis.Clients.CommentId_CommentR
 	if CCidClient == nil {

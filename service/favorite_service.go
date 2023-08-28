@@ -1,11 +1,13 @@
 package service
 
 import (
+	"encoding/json"
 	"errors"
 	"github.com/go-redsync/redsync/v4"
 	"log"
 	"simple_douyin/config"
 	"simple_douyin/dao"
+	"simple_douyin/middleware/mq"
 	"simple_douyin/middleware/redis"
 	"strconv"
 	"sync"
@@ -61,56 +63,56 @@ func (f *FavoriteService) FavoriteAction(userId int64, videoId int64) error {
 		return err
 	}
 
-	//go func() {
-	log.Println("正在更新redis")
-	err = UpdateRedis(userId, videoId, isFavorited)
-	if err != nil {
-		log.Println("Failed to sync like redis:", err)
-		return nil
-	}
-	//}() // 更新redis
+	go func() {
+		log.Println("正在更新redis")
+		err = UpdateRedis(userId, videoId, isFavorited)
+		if err != nil {
+			log.Println("Failed to sync like redis:", err)
+		}
+	}() // 更新redis
 
 	//go func() {
 	// 使用消息队列异步更新数据库
 	if isFavorited {
 		// 用户之前已经点赞，所以现在执行取消点赞操作
 		// 将 FavoriteDao 对象序列化为 JSON 字符串
-		err = dao.DeleteFavoriteInfo(favorite.UserId, favorite.VideoId)
-		if err != nil {
-			return errors.New("取消点赞存储进入数据库失败：" + err.Error())
-		}
-		log.Printf("取消点赞存储进入数据库成功")
-		//todo 使用消息队列异步更新数据库
 		/*
-			favoriteJson, err := json.Marshal(favorite)
+			err = dao.DeleteFavoriteInfo(favorite.UserId, favorite.VideoId)
 			if err != nil {
-				log.Println("Failed to marshal favorite:", err)
-				return nil
+				return errors.New("取消点赞存储进入数据库失败：" + err.Error())
 			}
-			// 发送消息到消息队列
-			mq.SendMessage(mq.FAVORITE_REMOVE, string(favoriteJson))
+			log.Printf("取消点赞存储进入数据库成功")
 		*/
+		//todo 使用消息队列异步更新数据库
+		favoriteJson, err := json.Marshal(favorite)
+		if err != nil {
+			log.Println("Failed to marshal favorite:", err)
+			return nil
+		}
+		// 发送消息到消息队列
+		mq.SendMessage(mq.FAVORITE_REMOVE, string(favoriteJson))
 	} else {
 		// 用户之前没有点赞，所以现在执行点赞操作
 		// 将 FavoriteDao 对象序列化为 JSON 字符串
 		log.Println("用户之前没有点赞，所以现在执行点赞操作")
 		favorite.Favorited = dao.ISFAVORITE
 		log.Println("准备插入的favorite对象:", favorite)
-		err := dao.InsertFavoriteInfo(favorite)
-		if err != nil {
-			return errors.New("点赞存储进入数据库失败：" + err.Error())
-		}
-		log.Println("点赞存储进入数据库成功")
-		//todo 使用消息队列异步更新数据库
 		/*
-			favoriteJson, err := json.Marshal(favorite)
+			err := dao.InsertFavoriteInfo(favorite)
 			if err != nil {
-				log.Println("Failed to marshal favorite:", err)
-				return nil
+				return errors.New("点赞存储进入数据库失败：" + err.Error())
 			}
-			// 发送消息到消息队列
-			mq.SendMessage(mq.FAVORITE_ADD, string(favoriteJson))
+			log.Println("点赞存储进入数据库成功")
+
 		*/
+		//todo 使用消息队列异步更新数据库
+		favoriteJson, err := json.Marshal(favorite)
+		if err != nil {
+			log.Println("Failed to marshal favorite:", err)
+			return nil
+		}
+		// 发送消息到消息队列
+		mq.SendMessage(mq.FAVORITE_ADD, string(favoriteJson))
 	}
 
 	if err != nil {
