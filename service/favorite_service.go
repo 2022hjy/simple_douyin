@@ -1,13 +1,11 @@
 package service
 
 import (
-	"encoding/json"
 	"errors"
 	"github.com/go-redsync/redsync/v4"
 	"log"
 	"simple_douyin/config"
 	"simple_douyin/dao"
-	"simple_douyin/middleware/mq"
 	"simple_douyin/middleware/redis"
 	"strconv"
 	"sync"
@@ -74,26 +72,45 @@ func (f *FavoriteService) FavoriteAction(userId int64, videoId int64) error {
 
 	//go func() {
 	// 使用消息队列异步更新数据库
-	if isFavorited { // 用户之前没有点赞，所以现在执行点赞操作
+	if isFavorited {
+		// 用户之前已经点赞，所以现在执行取消点赞操作
+		// 将 FavoriteDao 对象序列化为 JSON 字符串
+		err = dao.DeleteFavoriteInfo(favorite.UserId, favorite.VideoId)
+		if err != nil {
+			return errors.New("取消点赞存储进入数据库失败：" + err.Error())
+		}
+		log.Printf("取消点赞存储进入数据库成功")
+		//todo 使用消息队列异步更新数据库
+		/*
+			favoriteJson, err := json.Marshal(favorite)
+			if err != nil {
+				log.Println("Failed to marshal favorite:", err)
+				return nil
+			}
+			// 发送消息到消息队列
+			mq.SendMessage(mq.FAVORITE_REMOVE, string(favoriteJson))
+		*/
+	} else {
+		// 用户之前没有点赞，所以现在执行点赞操作
 		// 将 FavoriteDao 对象序列化为 JSON 字符串
 		log.Println("用户之前没有点赞，所以现在执行点赞操作")
+		favorite.Favorited = dao.ISFAVORITE
 		log.Println("准备插入的favorite对象:", favorite)
-		favoriteJson, err := json.Marshal(favorite)
+		err := dao.InsertFavoriteInfo(favorite)
 		if err != nil {
-			log.Println("Failed to marshal favorite:", err)
-			return nil
+			return errors.New("点赞存储进入数据库失败：" + err.Error())
 		}
-		// 发送消息到消息队列
-		mq.SendMessage(mq.FAVORITE_ADD, string(favoriteJson))
-	} else { // 用户之前已经点赞，所以现在执行取消点赞操作
-		// 将 FavoriteDao 对象序列化为 JSON 字符串
-		favoriteJson, err := json.Marshal(favorite)
-		if err != nil {
-			log.Println("Failed to marshal favorite:", err)
-			return nil
-		}
-		// 发送消息到消息队列
-		mq.SendMessage(mq.FAVORITE_REMOVE, string(favoriteJson))
+		log.Println("点赞存储进入数据库成功")
+		//todo 使用消息队列异步更新数据库
+		/*
+			favoriteJson, err := json.Marshal(favorite)
+			if err != nil {
+				log.Println("Failed to marshal favorite:", err)
+				return nil
+			}
+			// 发送消息到消息队列
+			mq.SendMessage(mq.FAVORITE_ADD, string(favoriteJson))
+		*/
 	}
 
 	if err != nil {
@@ -132,19 +149,23 @@ func (f *FavoriteService) getFavoriteIdListByUserIdFromRedis(UserId int64) ([]in
 	key := config.UserId_FVideoId_KEY_PREFIX + strconv.FormatInt(UserId, 10)
 	videoIdList, err := redis.GetKeysAndUpdateExpiration(UIdFVIdR, key)
 
-	VideoIdList, ok := videoIdList.([]int64)
-	if !ok {
-		log.Println("类型断言失败：无法转换为 []int64")
-		return nil, errors.New("类型断言失败")
-	}
-	if err != nil {
-		log.Println("从 Redis 中获取 videoIdList 失败", err)
-		return nil, err
-	}
+	VideoIdList, _ := videoIdList.([]int64)
+	//if !ok {
+	//	log.Println("用户还没有点赞任何的视频")
+	//	return []int64{}, nil
+	//}
+	//if err != nil {
+	//	log.Println("从 Redis 中获取 videoIdList 失败", err)
+	//	return nil, err
+	//}
 	if len(VideoIdList) == 0 {
 		log.Printf("用户没有点赞过任何视频")
-		log.Println("从数据库获取 videoIdList")
-		VideoIdList, _ = dao.GetVideoIdListByUserId(UserId)
+		log.Println("从数据库获取 用户点赞过的videoIdList")
+		VideoIdList, _, err = dao.GetFavoriteIdListByUserId(UserId)
+		if err != nil {
+			log.Println("从数据库获取 用户点赞过的videoIdList 失败", err)
+			return nil, err
+		}
 		// 将 VideoIdList 存入 Redis
 		err = ImportVideoIdsFromDb(UserId, VideoIdList)
 	}
@@ -186,7 +207,7 @@ func ImportVideoIdsFromDb(userId int64, videoIds []int64) error {
 //	return nil
 //}
 
-// 点赞/取消时同步更新 redis 中的数据
+// UpdateRedis 点赞/取消时同步更新 redis 中的数据
 func UpdateRedis(userId int64, videoId int64, isfavorited bool) error {
 	userIdStr := strconv.FormatInt(userId, 10)
 	userIdStrKey := config.UserId_FVideoId_KEY_PREFIX + userIdStr
@@ -195,7 +216,6 @@ func UpdateRedis(userId int64, videoId int64, isfavorited bool) error {
 
 	log.Println("正在更新redis，参数分别是：", userIdStrKey, videoIdStrKey, isfavorited)
 
-	// Assuming UIdFVIdR is a Redis client or similar
 	var UIdFVIdR = redis.Clients.UserId_FavoriteVideoIdR
 
 	switch isfavorited {

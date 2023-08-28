@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"log"
 	"net/http"
 	"strconv"
 
@@ -76,6 +77,8 @@ func CommentAction(c *gin.Context) {
 		return
 
 	case actionType == DELETE_COMMENT:
+		log.Printf("Entering DeleteComment function...")
+		log.Println("commentId:", c.Query("comment_id"))
 		commentId, err := strconv.ParseInt(c.Query("comment_id"), 10, 64)
 		if err != nil {
 			c.JSON(http.StatusOK, CommentActionResponse{
@@ -110,26 +113,30 @@ func CommentList(c *gin.Context) {
 	}
 	commentList, err := commentService.GetCommentList(videoId)
 	var commentResponseList []CommentResponse
-	for i, comment := range commentList {
-		/*
-			userId := comment.UserId
-			UIdU := redis.Clients.UserId_UserR
-			key := config.UserId_User_KEY_PREFIX + strconv.FormatInt(userId, 10)
-			userdao, err := redis.GetKeysAndUpdateExpiration(UIdU, key)
-			var UserDao dao.UserDao
-			if userdao == nil || err != nil {
-				//从数据库中获得用户信息
-				userDao := dao.UserDao{}
-				UserDao, _ = userDao.GetUserById(userId)
-			} else {
-				UserDao, _ = userdao.(dao.UserDao)
-			}
-			//todo 获得评论者的信息，进行转化 User := dao.GetUserById(userId)
-			//todo 获得FavoriteCount int64, FollowCount int64, FollowerCount int64, IsFollow bool, TotalFavorited string, WorkCount int64
-			UserResponse := util.ConvertDBUserToResponse(UserDao)
-		*/
-		commentResponseList[i] = ConvertDBCommentToResponse(comment, tokenUserId)
-		commentResponseList = append(commentResponseList, commentResponseList[i])
+	/*
+		userId := comment.UserId
+		UIdU := redis.Clients.UserId_UserR
+		key := config.UserId_User_KEY_PREFIX + strconv.FormatInt(userId, 10)
+		userdao, err := redis.GetKeysAndUpdateExpiration(UIdU, key)
+		var UserDao dao.UserDao
+		if userdao == nil || err != nil {
+			//从数据库中获得用户信息
+			userDao := dao.UserDao{}
+			UserDao, _ = userDao.GetUserById(userId)
+		} else {
+			UserDao, _ = userdao.(dao.UserDao)
+		}
+		//todo 获得评论者的信息，进行转化 User := dao.GetUserById(userId)
+		//todo 获得FavoriteCount int64, FollowCount int64, FollowerCount int64, IsFollow bool, TotalFavorited string, WorkCount int64
+		UserResponse := util.ConvertDBUserToResponse(UserDao)
+	*/
+	//for i, comment := range commentList {
+	//	commentResponseList[i] = ConvertDBCommentToResponse(comment, tokenUserId)
+	//	commentResponseList = append(commentResponseList, commentResponseList[i])
+	//}
+	for _, comment := range commentList {
+		commentResponse := ConvertDBCommentToResponse(comment, tokenUserId)
+		commentResponseList = append(commentResponseList, commentResponse)
 	}
 
 	if err != nil {

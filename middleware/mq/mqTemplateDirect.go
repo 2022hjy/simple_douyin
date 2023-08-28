@@ -1,12 +1,8 @@
 package mq
 
 import (
-	"log"
-	"os"
-	"os/signal"
-	"syscall"
-
 	"github.com/streadway/amqp"
+	"log"
 	"simple_douyin/config"
 )
 
@@ -140,9 +136,9 @@ func InitMq() {
 	// 处理FollowMQ队列中的消息
 	go handleMessages(FollowMQ.Name, ch, handleFollowMessage)
 
-	sig := make(chan os.Signal, 1)
-	signal.Notify(sig, os.Interrupt, syscall.SIGTERM)
-	<-sig
+	//sig := make(chan os.Signal, 1)
+	//signal.Notify(sig, os.Interrupt, syscall.SIGTERM)
+	//<-sig
 
 	closeResources(ch, conn)
 }

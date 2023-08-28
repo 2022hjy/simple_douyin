@@ -145,7 +145,9 @@ func (f *QueryUserInfoFlow) Do() (*UserInfo, error) {
 	}
 	f.lock.Lock()         // 锁住资源
 	defer f.lock.Unlock() // 释放锁
-	log.Println("***f.userInfo:***", f.userInfo)
+
+	//log.Println("***f.userInfo:***", f.userInfo)
+
 	return f.userInfo, nil
 }
 
@@ -177,10 +179,11 @@ func (f *QueryUserInfoFlow) prepareInfo() error {
 			log.Fatal(err)
 		}
 		f.user = user
-		log.Println("正在 异步获取 user 信息")
-		log.Println("f.user:", f.user)
-		log.Println("f.user.UserId:", f.user.UserId)
-		log.Printf("f.user.UserId:%v\n", f.user.UserId)
+
+		//log.Println("正在 异步获取 user 信息")
+		//log.Println("f.user:", f.user)
+		//log.Println("f.user.UserId:", f.user.UserId)
+		//log.Printf("f.user.UserId:%v\n", f.user.UserId)
 	}()
 
 	go func() {
@@ -209,9 +212,9 @@ func (f *QueryUserInfoFlow) prepareInfo() error {
 		//todo  测试数据
 		f.isFollow = isFollow
 
-		log.Println("f.followerCount:", f.followerCount)
-		log.Println("f.followCount:", f.followCount)
-		log.Println("f.isFollow:", f.isFollow)
+		//log.Println("f.followerCount:", f.followerCount)
+		//log.Println("f.followCount:", f.followCount)
+		//log.Println("f.isFollow:", f.isFollow)
 	}()
 
 	go func() {
@@ -231,13 +234,14 @@ func (f *QueryUserInfoFlow) prepareInfo() error {
 		if err != nil {
 			log.Println("user_service 内部的 GetFavoriteIdListByUserId err:", err)
 		}
-		log.Println("f.workCount:%v\n", f.workCount)
-		log.Println("f.favoriteCount:%v\n", f.favoriteCount)
+
+		//log.Println("f.workCount:%v\n", f.workCount)
+		//log.Println("f.favoriteCount:%v\n", f.favoriteCount)
 	}()
 
-	log.Println("wait for wg")
+	//log.Println("wait for wg")
 	wg.Wait()
-	log.Println("...........already finish waiting..........")
+	//log.Println("...........already finish waiting..........")
 	select {
 	case err := <-errChan:
 		return err
@@ -259,8 +263,7 @@ func (f *QueryUserInfoFlow) packageInfo() error {
 		FavoriteCount:  f.favoriteCount,
 	}
 
-	log.Println("==========f.userInfo:=======", f.userInfo)
-
+	//log.Println("==========f.userInfo:=======", f.userInfo)
 	return nil
 }
 

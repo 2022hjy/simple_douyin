@@ -29,12 +29,12 @@ var Clients *RedisClients
 // RedisClients redis 客户端
 // 命名规则：[Key]_[Val]R
 type RedisClients struct {
-	Test               *redisv9.Client
-	VideoId_CommentIdR *redisv9.Client
-	CommentId_CommentR *redisv9.Client
+	Test               *redisv9.Client //0
+	VideoId_CommentIdR *redisv9.Client //1
+	CommentId_CommentR *redisv9.Client //3
 	//F : favorite
-	UserId_FavoriteVideoIdR  *redisv9.Client
-	VideoId_FavoritebUserIdR *redisv9.Client //todo 用视频ID作为键，存储的是点赞这个视频的所有用户ID。
+	UserId_FavoriteVideoIdR  *redisv9.Client //4
+	VideoId_FavoritebUserIdR *redisv9.Client // 5 todo 用视频ID作为键，存储的是点赞这个视频的所有用户ID。
 
 	VideoId_VideoR *redisv9.Client
 	//点赞数 和 被点赞数
@@ -80,6 +80,7 @@ func InitRedis() {
 			Password: ProRedisPwd,
 			DB:       1,
 		}),
+		//卧槽，改 bug 改了一天，原来是这里的问题，我把这里的 DB 改成了 2是被注释掉的，因此在表的监控软件里面应该使用的是 3
 		//CVid: redisv9.NewClient(&redisv9.Options{
 		//	Addr:     ProdRedisAddr,
 		//	Password: ProRedisPwd,
@@ -137,15 +138,32 @@ func InitRedis() {
 
 // SetValueWithRandomExp 设置 Redis 集合的批量添加，采取过期时间随机
 func SetValueWithRandomExp(client *redisv9.Client, key string, value interface{}) error {
+	log.Println("正在调用SetValueWithRandomExp方法进行 Redis 的信息的存储，key:", key, "value:", value)
 	if client == nil {
 		return errors.New("client is nil")
 	}
 	rand.Seed(time.Now().UnixNano())
-	exp := time.Duration(rand.Intn(20)) * time.Minute
+	//exp := time.Duration(rand.Intn(20)) * time.Minute
 
-	SetErr := client.Set(Ctx, key, value, exp).Err()
+	SetErr := client.Set(Ctx, key, value, 0).Err()
 	if SetErr != nil {
 		log.Fatalf("redis set error: %v\n", SetErr)
+	}
+	return SetErr
+}
+
+func PushValueToListR(client *redisv9.Client, key string, value interface{}) error {
+	log.Println("正在调用PushValueToListR 方法进行 Redis 的信息的存储，key:", key, "value:", value)
+	if client == nil {
+		return errors.New("client is nil")
+	}
+	//rand.Seed(time.Now().UnixNano())
+	//exp := time.Duration(rand.Intn(20)) * time.Minute
+
+	_, SetErr := client.RPush(Ctx, key, value).Result()
+	if SetErr != nil {
+		log.Printf("redis RPush set error: %v\n\n", SetErr)
+		return errors.New("redis set error: " + SetErr.Error())
 	}
 	return SetErr
 }
@@ -276,15 +294,16 @@ addErr := client.SAdd(Ctx, key, value, exp).Err()
 
 // GetKeysAndUpdateExpiration 获取与给定模式匹配的所有Redis中的值，并更新（膨胀）它们的过期时间，支持返回一对一，一对多的键值对
 // 该函数返回一个interface，因此需要在使用的时候使用类型断言
-func GetKeysAndUpdateExpiration(client *redisv9.Client, pattern string) (interface{}, error) {
-	keys, err := client.Keys(Ctx, pattern).Result()
+func GetKeysAndUpdateExpiration(client *redisv9.Client, key string) (interface{}, error) {
+	keys, err := client.Keys(Ctx, key).Result()
+	log.Println("在GetKeysAndUpdateExpiration内部获得的keys:", keys)
 	if err != nil {
 		return nil, err
 	}
 
 	// 没有匹配的键
 	if len(keys) == 0 {
-		return nil, errors.New("no keys match the pattern")
+		return nil, nil
 	}
 
 	values, err := client.MGet(Ctx, keys...).Result()
@@ -294,6 +313,7 @@ func GetKeysAndUpdateExpiration(client *redisv9.Client, pattern string) (interfa
 
 	results := make(map[string]string)
 	for i, key := range keys {
+		log.Printf("正在处理的键值对：key == %v value == %v ", key, values[i])
 		val, ok := values[i].(string)
 		if !ok {
 			//MRLock.Unlock()

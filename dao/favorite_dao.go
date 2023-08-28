@@ -2,6 +2,7 @@ package dao
 
 import (
 	"errors"
+	"gorm.io/gorm"
 	"log"
 	"simple_douyin/config"
 	"simple_douyin/middleware/redis"
@@ -138,26 +139,64 @@ func UpdateFavoriteInfo(userId int64, videoId int64, favorited int8) error {
 	return nil
 }
 
+//func InsertFavoriteInfo(favorite FavoriteDao) error {
+//	err := Db.Model(FavoriteDao{}).Create(&favorite).Error
+//	if err != nil {
+//		log.Println(err.Error())
+//		return errors.New("insert favorites failed")
+//	}
+//	return nil
+//}
+//
+//func DeleteFavoriteInfo(userId int64, videoId int64) error {
+//	err := Db.Model(FavoriteDao{}).Where("user_id = ? and video_id = ?", userId, videoId).Delete(&FavoriteDao{}).Error
+//	if err != nil {
+//		log.Println(err.Error())
+//		return errors.New("delete favorite failed")
+//	}
+//	return nil
+//}
+
 func InsertFavoriteInfo(favorite FavoriteDao) error {
-	err := Db.Model(FavoriteDao{}).Create(&favorite).Error
-	if err != nil {
-		log.Println(err.Error())
-		return errors.New("insert favorites failed")
-	}
-	return nil
+	return Db.Transaction(func(tx *gorm.DB) error {
+		// 插入新的喜欢信息
+		err := tx.Model(FavoriteDao{}).Create(&favorite).Error
+		if err != nil {
+			log.Println(err.Error())
+			return errors.New("insert favorites failed")
+		}
+
+		// 更新视频的喜欢计数
+		if err := tx.Model(&Video{}).Where("id = ?", favorite.VideoId).Update("favorite_count", gorm.Expr("favorite_count + ?", 1)).Error; err != nil {
+			log.Println(err.Error())
+			return errors.New("update video favorite count failed")
+		}
+
+		return nil
+	})
 }
 
 func DeleteFavoriteInfo(userId int64, videoId int64) error {
-	err := Db.Model(FavoriteDao{}).Where("user_id = ? and video_id = ?", userId, videoId).Delete(&FavoriteDao{}).Error
-	if err != nil {
-		log.Println(err.Error())
-		return errors.New("delete favorite failed")
-	}
-	return nil
+	return Db.Transaction(func(tx *gorm.DB) error {
+		// 删除喜欢信息
+		err := tx.Model(FavoriteDao{}).Where("user_id = ? and video_id = ?", userId, videoId).Delete(&FavoriteDao{}).Error
+		if err != nil {
+			log.Println(err.Error())
+			return errors.New("delete favorite failed")
+		}
+
+		// 更新视频的喜欢计数
+		if err := tx.Model(&Video{}).Where("id = ?", videoId).Update("favorite_count", gorm.Expr("favorite_count - ?", 1)).Error; err != nil {
+			log.Println(err.Error())
+			return errors.New("update video favorite count failed")
+		}
+
+		return nil
+	})
 }
 
 func IsVideoFavoritedByUser(userId int64, videoId int64) (bool, error) {
-	var isFavorited int8
+	var isFavorited int
 	result := Db.Model(FavoriteDao{}).Select("is_favorite").Where("user_id= ? and video_id= ?", userId, videoId).First(&isFavorited)
 	c := result.RowsAffected
 	if result == nil {

@@ -34,8 +34,34 @@ func handleDBError(result *gorm.DB, action string) error {
 
 func AddComment(comment CommentDao) (CommentDao, error) {
 	result := Db.Model(CommentDao{}).Create(&comment)
+	err := Db.Model(Video{}).Where("id = ?", comment.VideoId).Update("comment_count", gorm.Expr("comment_count + ?", 1)).Error
+	if err != nil {
+		return comment, errors.New("update video comment count failed")
+	}
 	return comment, handleDBError(result, "Insert comment")
 }
+
+//func DeleteComment(commentId int64) error {
+//	return Db.Transaction(func(tx *gorm.DB) error {
+//		// 查找要删除的评论以获取其VideoId
+//		var comment CommentDao
+//		if err := tx.Model(&CommentDao{}).Where("id = ?", commentId).First(&comment).Error; err != nil {
+//			return errors.New("comment not found")
+//		}
+//
+//		// 删除评论
+//		result := tx.Model(&CommentDao{}).Where("id = ?", commentId).Delete(&CommentDao{})
+//		if err := handleDBError(result, "Delete comment"); err != nil {
+//			return err
+//		}
+//
+//		// 更新视频的评论数量
+//		if err := tx.Model(&Video{}).Where("id = ?", comment.VideoId).Update("comment_count", gorm.Expr("comment_count - ?", 1)).Error; err != nil {
+//			return errors.New("update video comment count failed")
+//		}
+//		return nil
+//	})
+//}
 
 func DeleteComment(commentId int64) error {
 	return Db.Transaction(func(tx *gorm.DB) error {
