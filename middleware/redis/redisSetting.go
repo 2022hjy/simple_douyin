@@ -367,7 +367,7 @@ func IsKeyExist(client *redisv9.Client, key string) (bool, error) {
 }
 
 // CountElements 获取与给定键关联的 Redis 集合的元素数量
-func CountElements(client *redisv9.Client, key string) (int, error) {
+func CountElements(client *redisv9.Client, key string) (int64, error) {
 	if client == nil {
 		return 0, errors.New("客户端为空")
 	}
@@ -377,8 +377,7 @@ func CountElements(client *redisv9.Client, key string) (int, error) {
 		log.Printf("获取 Redis 集合元素数量失败: %v\n", err)
 		return 0, err
 	}
-
-	return int(count), nil
+	return count, nil
 }
 
 // GetValue 获取 Redis 中的值（常规）

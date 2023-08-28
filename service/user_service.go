@@ -229,6 +229,7 @@ func (f *QueryUserInfoFlow) prepareInfo() error {
 		videoService := GetVideoServiceInstance()
 		f.workCount, err = videoService.GetVideoCnt(f.userId)
 		_, f.favoriteCount, err = dao.GetFavoriteIdListByUserId(f.userId)
+		f.totalFavorited, _ = dao.GettotalFavorited(f.userId)
 
 		if err != nil {
 			log.Println("user_service 内部的 GetFavoriteIdListByUserId err:", err)

@@ -520,7 +520,7 @@ func (followService *FollowServiceImp) GetFollowingCnt(userId int64) (int64, err
 			log.Println(err2.Error())
 		}
 		//设置 Redis 中的键的过期时间
-		redis.Clients.UserId_FollowingsR.Expire(redis.Ctx, strconv.Itoa(int(userId)), CacheTimeGenerator())
+		redis.Clients.UserId_FollowingsR.Expire(redis.Ctx, config.User_Follow_KEY_PREFIX+strconv.FormatInt(userId, 10), CacheTimeGenerator())
 		return cnt, nil
 
 	} else {
@@ -554,13 +554,13 @@ func (followService *FollowServiceImp) GetFollowerCnt(userId int64) (int64, erro
 
 	if keyCnt {
 		// 键存在，获取键中集合元素个数
-		cnt, err2 := redis.Clients.UserId_FollowersR.SCard(redis.Ctx, strconv.Itoa(int(userId))).Result()
+		cnt, err2 := redis.Clients.UserId_FollowersR.SCard(redis.Ctx, config.User_Follow_KEY_PREFIX+strconv.FormatInt(userId, 10)).Result()
 
 		if err2 != nil {
 			log.Println(err2.Error())
 		}
 
-		redis.Clients.UserId_FollowersR.Expire(redis.Ctx, strconv.Itoa(int(userId)), CacheTimeGenerator())
+		redis.Clients.UserId_FollowersR.Expire(redis.Ctx, config.User_Follow_KEY_PREFIX+strconv.FormatInt(userId, 10), CacheTimeGenerator())
 		return cnt, nil
 
 	} else {
@@ -575,13 +575,11 @@ func (followService *FollowServiceImp) GetFollowerCnt(userId int64) (int64, erro
 
 		return int64(len(ids)), nil
 	}
-
 }
 
 /*
 	对外提供服务之返回登陆用户是否关注目标用户的布尔值
 */
-
 // CheckIsFollowing 判断当前登录用户是否关注了目标用户
 func (followService *FollowServiceImp) CheckIsFollowing(userId int64, targetId int64) (bool, error) {
 	followDao := dao.NewFollowDaoInstance()
@@ -594,7 +592,7 @@ func (followService *FollowServiceImp) CheckIsFollowing(userId int64, targetId i
 
 	if keyCnt {
 		// 键存在判断是否存在userId和targetId键值对
-		flag, err3 := redis.Clients.UserId_FollowingsR.SIsMember(redis.Ctx, strconv.Itoa(int(userId)), targetId).Result()
+		flag, err3 := redis.Clients.UserId_FollowingsR.SIsMember(redis.Ctx, config.User_Follow_KEY_PREFIX+strconv.FormatInt(userId, 10), targetId).Result()
 
 		if err3 != nil {
 			log.Println(err3)

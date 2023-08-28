@@ -235,7 +235,7 @@ func IsVideoFavoritedByUser(userId int64, videoId int64) (bool, error) {
 //	return true, nil
 //}
 
-func GettotalFavorited(userId int64) (int, error) {
+func GettotalFavorited(userId int64) (int64, error) {
 	UIdFVIdR := redis.Clients.UserId_FavoriteVideoIdR
 	key := config.UserId_FVideoId_KEY_PREFIX + strconv.FormatInt(userId, 10)
 
@@ -250,30 +250,30 @@ func GettotalFavorited(userId int64) (int, error) {
 		}
 		// 将数据重新设置到 Redis
 		redis.SetValueWithRandomExp(UIdFVIdR, key, countFromDb)
-		return int(countFromDb), nil
+		return countFromDb, nil
 	}
 	return count, nil
 }
 
-func GetfavoriteCount(videoId int64) (int, error) {
-	UIdFVIdR := redis.Clients.UserId_FavoriteVideoIdR
-	key := config.VideoId_FavoritebUserId_KEY_PREFIX + strconv.FormatInt(videoId, 10)
-
-	// 尝试从 Redis 中获取数据
-	count, err := redis.CountElements(UIdFVIdR, key)
-	if err != nil || count == 0 { // 如果 Redis 返回错误或计数为0
-		// 从数据库中获取点赞的用户数量
-		countFromDb, errDb := VideoFavoritedCount(videoId)
-		if errDb != nil {
-			log.Println("从数据库获取点赞的用户数量失败：", errDb)
-			return 0, errDb
-		}
-		// 将数据重新设置到 Redis
-		err := redis.SetValueWithRandomExp(UIdFVIdR, key, countFromDb)
-		if err != nil {
-			return 0, err
-		}
-		return int(countFromDb), nil
-	}
-	return count, nil
-}
+//func GetfavoriteCount(videoId int64) (int, error) {
+//	UIdFVIdR := redis.Clients.UserId_FavoriteVideoIdR
+//	key := config.VideoId_FavoritebUserId_KEY_PREFIX + strconv.FormatInt(videoId, 10)
+//
+//	// 尝试从 Redis 中获取数据
+//	count, err := redis.CountElements(UIdFVIdR, key)
+//	if err != nil || count == 0 { // 如果 Redis 返回错误或计数为0
+//		// 从数据库中获取点赞的用户数量
+//		countFromDb, errDb := VideoFavoritedCount(videoId)
+//		if errDb != nil {
+//			log.Println("从数据库获取点赞的用户数量失败：", errDb)
+//			return 0, errDb
+//		}
+//		// 将数据重新设置到 Redis
+//		err := redis.SetValueWithRandomExp(UIdFVIdR, key, countFromDb)
+//		if err != nil {
+//			return 0, err
+//		}
+//		return int(countFromDb), nil
+//	}
+//	return count, nil
+//}

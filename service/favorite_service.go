@@ -252,7 +252,7 @@ func UpdateRedis(userId int64, videoId int64, isfavorited bool) error {
 
 // GettotalFavorited 返回用户点赞的视频数量。
 // 逻辑是计算与用户ID关联在Redis集合中的videoIds的数量。
-func GettotalFavorited(userId int64) (int, error) {
+func GettotalFavorited(userId int64) (int64, error) {
 	UIdFVIdR := redis.Clients.UserId_FavoriteVideoIdR
 	key := config.UserId_FVideoId_KEY_PREFIX + strconv.FormatInt(userId, 10)
 
@@ -263,15 +263,14 @@ func GettotalFavorited(userId int64) (int, error) {
 		log.Println("获取用户点赞的视频数量失败：", err)
 		return 0, err
 	}
-	return count, nil
+	return int64(count), nil
 }
 
 // GetfavoriteCount 返回点赞该视频的用户数量。
 // 逻辑是计算与视频ID关联在Redis集合中的userIds的数量。
-func GetfavoriteCount(videoId int64) (int, error) {
+func GetfavoriteCount(videoId int64) (int64, error) {
 	UIdFVIdR := redis.Clients.UserId_FavoriteVideoIdR
 	key := config.VideoId_FavoritebUserId_KEY_PREFIX + strconv.FormatInt(videoId, 10)
-
 	// 使用一个函数来获取集合中的元素数量。
 	// 假设有一个函数像redis.CountElements或类似的。
 	count, err := redis.CountElements(UIdFVIdR, key)
