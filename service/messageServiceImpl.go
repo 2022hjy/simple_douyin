@@ -43,17 +43,24 @@ func (c *MessageServiceImpl) SendMessage(fromUserId int64, toUserId int64, conte
 	return nil
 }
 
-func (c *MessageServiceImpl) MessageChat(loginUserId int64, targetUserId int64, latestTime time.Time) ([]dao.Message, error) {
-	messages := make([]dao.Message, 0, config.MessageInitNum)
-	messages, err := dao.MessageChat(loginUserId, targetUserId, latestTime)
+func (c *MessageServiceImpl) MessageChat(loginUserId int64, targetUserId int64, latestTime time.Time) ([]Message, error) {
+	messages := make([]Message, 0, config.MessageInitNum)
+	daoMessages, err := dao.MessageChat(loginUserId, targetUserId, latestTime)
 	if err != nil {
 		log.Println("MessageChat Service出错:", err.Error())
-		return []dao.Message{}, err
+		return nil, err
+	}
+	for _, tmpMessage := range daoMessages {
+		var message Message
+		message.Id = tmpMessage.Id
+		message.FromUserID = tmpMessage.FromUserID
+		message.ToUserID = tmpMessage.ToUserID
+		message.Content = tmpMessage.Content
+		message.CreateTime = tmpMessage.CreateTime.Unix()
+		messages = append(messages, message)
 	}
 	return messages, nil
 }
-
-// todo 更新聊天记录redis
 
 //======================   LatestMessage   =========================
 
@@ -91,6 +98,7 @@ func (c *MessageServiceImpl) getLastMessageFromDB(loginUserId int64, targetUserI
 	return latestMessage, nil
 }
 
+// todo 解决双方最新消息不一致的问题
 func (c *MessageServiceImpl) getLastMessageFromRedis(loginUserId int64, targetUserId int64) (LatestMessage, error) {
 	var latestMessage LatestMessage
 	uId := fmt.Sprintf("%s%d-%d", config.UserAllId_Message_KEY_PREFIX, loginUserId, targetUserId)
