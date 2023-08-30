@@ -37,17 +37,15 @@ func (c *MessageServiceImpl) SendMessage(fromUserId int64, toUserId int64, conte
 		Content:    content,
 		CreateTime: time.Unix(time.Now().Unix(), 0),
 	}
-	LastMessage, err := dao.SendMessage(message)
+	LaseMessage, err := dao.SendMessage(message)
 	//在发送消息的时候就存入redis
-<<<<<<< HEAD
-	updateLastMessageRedis(fromUserId, toUserId, LastMessage)
-=======
+
 	// 对fromUserId和toUserId进行排序 保证LastMessage的redis一致性
 	if fromUserId > toUserId {
 		fromUserId, toUserId = toUserId, fromUserId
 	}
 	updateLastMessageRedis(fromUserId, toUserId, LaseMessage)
->>>>>>> 44abf95a32657c28dd1d117072817d4cccee288c
+
 	return nil
 }
 
@@ -70,21 +68,6 @@ func (c *MessageServiceImpl) MessageChat(loginUserId int64, targetUserId int64, 
 	return messages, nil
 }
 
-<<<<<<< HEAD
-//func (c *MessageServiceImpl) MessageChat(loginUserId int64, targetUserId int64) ([]dao.Message, error) {
-//	messages := make([]dao.Message, 0, config.MessageInitNum)
-//	messages, err := dao.MessageChat(loginUserId, targetUserId)
-//	if err != nil {
-//		log.Println("MessageChat Service出错:", err.Error())
-//		return []dao.Message{}, err
-//	}
-//	return messages, nil
-//}
-
-// todo 更新聊天记录redis
-
-=======
->>>>>>> 44abf95a32657c28dd1d117072817d4cccee288c
 //======================   LatestMessage   =========================
 
 func (c *MessageServiceImpl) LatestMessage(loginUserId int64, targetUserId int64) (LatestMessage, error) {
