@@ -39,6 +39,10 @@ func (c *MessageServiceImpl) SendMessage(fromUserId int64, toUserId int64, conte
 	}
 	LaseMessage, err := dao.SendMessage(message)
 	//在发送消息的时候就存入redis
+	// 对fromUserId和toUserId进行排序 保证LastMessage的redis一致性
+	if fromUserId > toUserId {
+		fromUserId, toUserId = toUserId, fromUserId
+	}
 	updateLastMessageRedis(fromUserId, toUserId, LaseMessage)
 	return nil
 }
@@ -65,6 +69,9 @@ func (c *MessageServiceImpl) MessageChat(loginUserId int64, targetUserId int64, 
 //======================   LatestMessage   =========================
 
 func (c *MessageServiceImpl) LatestMessage(loginUserId int64, targetUserId int64) (LatestMessage, error) {
+	if loginUserId > targetUserId {
+		loginUserId, targetUserId = targetUserId, loginUserId
+	}
 	lastMessage, err := c.getLastMessageFromRedis(loginUserId, targetUserId)
 	if err != nil {
 		return LatestMessage{}, err
