@@ -72,16 +72,16 @@ func Feed(c *gin.Context) {
 // getRespVideos dao.video --> FeedResponse
 func getRespVideos(plainVideos []dao.Video, userId int64) ([]VideoResponse, error) {
 	var douyinVideos []VideoResponse
-	for k, video := range plainVideos {
-		log.Println("在 controller 的getRespVideo 中，第", k, "个video:", video)
+	for _, video := range plainVideos {
+		//log.Println("在 controller 的getRespVideo 中，第", k, "个video:", video)
 		response, err := ConvertDBVideoToResponse(video, userId)
-		log.Println("在 controller 的getRespVideo 中，response:", response)
+		//log.Println("在 controller 的getRespVideo 中，response:", response)
 		if err != nil {
 			log.Println("getRespVideos出现问题:", err)
 			return []VideoResponse{}, nil
 		}
 		douyinVideos = append(douyinVideos, response)
 	}
-	log.Println("在 controller 的getRespVideo 中，douyinVideos:", douyinVideos)
+	//log.Println("在 controller 的getRespVideo 中，douyinVideos:", douyinVideos)
 	return douyinVideos, nil
 }

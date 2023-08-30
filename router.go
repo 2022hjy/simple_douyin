@@ -7,12 +7,18 @@ import (
 	"simple_douyin/controller"
 	"simple_douyin/middleware/corsUtils"
 	"simple_douyin/middleware/jwt"
+	"simple_douyin/middleware/word_filter"
 )
 
 func InitRouter(apiRouter *gin.RouterGroup) *gin.RouterGroup {
 	// public directory is used to serve static resources
 	r := gin.Default()
 	r.Static("/static", "./public")
+
+	WordFilter, err := word_filter.NewWordFilterMiddleware("middleware/word_filter/sensitive_words.txt")
+	if err != nil {
+		log.Printf("Error setting up word filter middleware: %v\n", err)
+	}
 
 	apiRouter.GET("/feed/", jwt.AuthWithoutLogin(), controller.Feed)
 
@@ -50,7 +56,7 @@ func InitRouter(apiRouter *gin.RouterGroup) *gin.RouterGroup {
 	// 评论相关路由
 	rComment := apiRouter.Group("/comment")
 	{
-		rComment.POST("/action/", jwt.Auth(), controller.CommentAction)
+		rComment.POST("/action/", jwt.Auth(), WordFilter, controller.CommentAction)
 		rComment.GET("/list/", jwt.Auth(), controller.CommentList)
 	}
 

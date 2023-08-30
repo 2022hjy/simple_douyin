@@ -262,7 +262,6 @@ func (f *QueryUserInfoFlow) packageInfo() error {
 		WorkCount:      f.workCount,
 		FavoriteCount:  f.favoriteCount,
 	}
-
 	//log.Println("==========f.userInfo:=======", f.userInfo)
 	return nil
 }

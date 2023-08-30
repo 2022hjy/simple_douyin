@@ -37,9 +37,9 @@ func (c *MessageServiceImpl) SendMessage(fromUserId int64, toUserId int64, conte
 		Content:    content,
 		CreateTime: time.Unix(time.Now().Unix(), 0),
 	}
-	LaseMessage, err := dao.SendMessage(message)
+	LastMessage, err := dao.SendMessage(message)
 	//在发送消息的时候就存入redis
-	updateLastMessageRedis(fromUserId, toUserId, LaseMessage)
+	updateLastMessageRedis(fromUserId, toUserId, LastMessage)
 	return nil
 }
 
@@ -52,6 +52,16 @@ func (c *MessageServiceImpl) MessageChat(loginUserId int64, targetUserId int64, 
 	}
 	return messages, nil
 }
+
+//func (c *MessageServiceImpl) MessageChat(loginUserId int64, targetUserId int64) ([]dao.Message, error) {
+//	messages := make([]dao.Message, 0, config.MessageInitNum)
+//	messages, err := dao.MessageChat(loginUserId, targetUserId)
+//	if err != nil {
+//		log.Println("MessageChat Service出错:", err.Error())
+//		return []dao.Message{}, err
+//	}
+//	return messages, nil
+//}
 
 // todo 更新聊天记录redis
 

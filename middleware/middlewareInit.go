@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"github.com/dvwright/xss-mw"
 	"github.com/gin-gonic/gin"
 	"simple_douyin/log"
 	"simple_douyin/middleware/ratelimit"
@@ -13,16 +14,19 @@ import (
 //}
 
 func InitMiddleware(apiRouter *gin.RouterGroup) {
-
 	// 初始化 logrus
 	log.LogrusInit()
 
 	////初始化 xss
-	//xssMiddleware := xss.XssMw{}
-	//apiRouter.Use(xssMiddleware.RemoveXss())
+	xssMiddleware := xss.XssMw{}
+	apiRouter.Use(xssMiddleware.RemoveXss())
 
-	//初始化 Redis
-	//redis.InitRedis()
+	//// 初始化敏感词过滤器
+	//wordFilterHandler, err := word_filter.NewWordFilterMiddleware("middleware/word_filter/sensitive_words.txt")
+	//if err != nil {
+	//	log.Log.Println("Error setting up word filter middleware: %v", err)
+	//}
+	//apiRouter.Use(wordFilterHandler)
 
 	// 初始化限流器
 	rateControlHandler, err := ratelimit.RateControl()

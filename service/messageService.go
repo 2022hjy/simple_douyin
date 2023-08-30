@@ -11,7 +11,6 @@ type LatestMessage struct {
 }
 
 type MessageService interface {
-
 	/*
 		业务所需服务接口
 	*/
@@ -19,7 +18,6 @@ type MessageService interface {
 	SendMessage(id int64, fromUserId int64, toUserId int64, content string, actionType int64) error
 	// MessageChat 聊天记录服务
 	MessageChat(loginUserId int64, targetUserId int64) (dao.Message, error)
-
 	/*
 		对外提供服务接口
 	*/

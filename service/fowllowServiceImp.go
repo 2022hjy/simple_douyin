@@ -2,6 +2,7 @@ package service
 
 import (
 	"fmt"
+	"github.com/sirupsen/logrus"
 	"log"
 	"math/rand"
 	"simple_douyin/config"
@@ -279,7 +280,7 @@ func (followService *FollowServiceImp) GetFriends(userId int64) ([]dao.FriendUse
 
 // BuildFriendUser 根据传入的id列表和空frienduser数组，构建业务所需frienduser数组并返回
 func (followService *FollowServiceImp) BuildFriendUser(userId int64, friendUsers []dao.FriendUser, ids []int64) error {
-
+	logrus.Print("我在 followServiceImpl 的 BuildFriendUse里面")
 	msi := messageServiceImpl
 	followDao := dao.NewFollowDaoInstance()
 

@@ -3,6 +3,7 @@ package controller
 import (
 	"log"
 	"net/http"
+	"simple_douyin/dao"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -55,11 +56,23 @@ func CommentAction(c *gin.Context) {
 		return
 	}
 
+	var commentRes dao.CommentDao
+	var err error
+
 	// 评论类型：1-评论 2-删除评论
 	switch {
 	case actionType == ADD_COMMENT:
-		content := c.Query("comment_text")
-		commentRes, err := commentService.Comment(userId, videoId, content)
+		// 从 Gin Context 中获取过滤后的文本
+		if filteredContentValue, exists := c.Get("filteredText"); exists {
+			filteredContent := filteredContentValue.(string) // 类型断言
+			log.Println("过滤后的filteredContent:", filteredContent)
+			commentRes, err = commentService.Comment(userId, videoId, filteredContent)
+		} else {
+			log.Println("过滤后的filteredContent不存在")
+			content := c.Query("comment_text")
+			commentRes, err = commentService.Comment(userId, videoId, content)
+		}
+
 		var commentResponse = ConvertDBCommentToResponse(commentRes, userId)
 		//评论操作时
 		if err != nil {

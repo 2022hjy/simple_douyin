@@ -1,8 +1,49 @@
 package word_filter
 
-const replaceString = "&"
+import (
+	"bufio"
+	"github.com/gin-gonic/gin"
+	"os"
+)
 
-//target: 敏感词过滤
+const replaceString = "&&&"
+
+func NewWordFilterMiddleware(txtFilePath string) (gin.HandlerFunc, error) {
+	trie, err := NewTrieFromTxtFile(txtFilePath)
+	if err != nil {
+		return nil, err
+	}
+	// 路径位置：middleware/word_filter/sensitive_words.txt
+	return func(c *gin.Context) {
+		text := c.Query("comment_text")
+		if text != "" {
+			filteredText := trie.Filter(text)
+			c.Set("filteredText", filteredText)
+		}
+		c.Next()
+	}, nil
+}
+
+func NewTrieFromTxtFile(path string) (*Trie, error) {
+	trie := NewTrie()
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		word := scanner.Text()
+		trie.Insert(word)
+	}
+
+	if err := scanner.Err(); err != nil {
+		return nil, err
+	}
+
+	return trie, nil
+}
 
 // TrieNode 前缀树的结点
 type TrieNode struct {

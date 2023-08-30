@@ -31,8 +31,8 @@ const (
 	// CoverUrlSuffix 频封面图的URL后缀，通过该后缀可以对视频进行截图并获取封面图
 	CoverUrlSuffix = "?x-oss-process=video/snapshot,t_2000,m_fast"
 
-	OssAccessKeyId     = "LTAI5tB2FZzUak61moLzGsvY"
-	OssAccessKeySecret = "kLmoyk66CpjlTnHctN4wIeoAALzzUy"
+	OssAccessKeyId     = "LTAI5tEWrpRdtymHQvmUK9cr"
+	OssAccessKeySecret = "6Q2Nf9oorjzd1j5YW5KaZdgwmHRwE3"
 	OssBucketName      = "simple-tiktok"
 	OssEndpoint        = "https://oss-cn-beijing.aliyuncs.com"
 	//https://simple-tiktok.oss-cn-beijing.aliyuncs.com
