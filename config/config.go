@@ -26,16 +26,16 @@ const (
 
 	OssVideoDir = "OSS_VIDEO/"
 	// PlayUrlPrefix 播放视频的URL前缀
-	PlayUrlPrefix = "https://simple-tiktok.oss-cn-beijing.aliyuncs.com/OssVideoDir"
-
+	PlayUrlPrefix = "https://simple-tiktok.oss-cn-beijing.aliyuncs.com/" + OssVideoDir
 	// CoverUrlSuffix 频封面图的URL后缀，通过该后缀可以对视频进行截图并获取封面图
 	CoverUrlSuffix = "?x-oss-process=video/snapshot,t_2000,m_fast"
 
-	OssAccessKeyId     = "LTAI5tEWrpRdtymHQvmUK9cr"
-	OssAccessKeySecret = "6Q2Nf9oorjzd1j5YW5KaZdgwmHRwE3"
-	OssBucketName      = "simple-tiktok"
-	OssEndpoint        = "https://oss-cn-beijing.aliyuncs.com"
-	//https://simple-tiktok.oss-cn-beijing.aliyuncs.com
+	// OssAccessKeyId 注意oss的相关配置要及时更新
+	OssAccessKeyId     = "OssAccessKeyId"
+	OssAccessKeySecret = "OssAccessKeySecret"
+
+	OssBucketName = "simple-tiktok"
+	OssEndpoint   = "https://oss-cn-beijing.aliyuncs.com"
 )
 
 // 消息模块相关配置

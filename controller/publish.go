@@ -30,11 +30,8 @@ func Publish(c *gin.Context) {
 	title := c.PostForm("title")
 	log.Printf("视频 title: %v\n", title)
 	videoService := service.GetVideoServiceInstance()
-	// 从 token 中获取 userId
-	//err = videoService.Publish(data, title, userId)
 	err = videoService.Publish(c, data, title, userId)
 	log.Printf("在 controller 视频 title: %v\n", title)
-	//log.Println("视频 data：", data)
 	log.Println("视频 userId：", userId)
 	if err != nil {
 		log.Println(err.Error())

@@ -39,20 +39,38 @@ func (c *MessageServiceImpl) SendMessage(fromUserId int64, toUserId int64, conte
 	}
 	LastMessage, err := dao.SendMessage(message)
 	//在发送消息的时候就存入redis
+<<<<<<< HEAD
 	updateLastMessageRedis(fromUserId, toUserId, LastMessage)
+=======
+	// 对fromUserId和toUserId进行排序 保证LastMessage的redis一致性
+	if fromUserId > toUserId {
+		fromUserId, toUserId = toUserId, fromUserId
+	}
+	updateLastMessageRedis(fromUserId, toUserId, LaseMessage)
+>>>>>>> 44abf95a32657c28dd1d117072817d4cccee288c
 	return nil
 }
 
-func (c *MessageServiceImpl) MessageChat(loginUserId int64, targetUserId int64, latestTime time.Time) ([]dao.Message, error) {
-	messages := make([]dao.Message, 0, config.MessageInitNum)
-	messages, err := dao.MessageChat(loginUserId, targetUserId, latestTime)
+func (c *MessageServiceImpl) MessageChat(loginUserId int64, targetUserId int64, latestTime time.Time) ([]Message, error) {
+	messages := make([]Message, 0, config.MessageInitNum)
+	daoMessages, err := dao.MessageChat(loginUserId, targetUserId, latestTime)
 	if err != nil {
 		log.Println("MessageChat Service出错:", err.Error())
-		return []dao.Message{}, err
+		return nil, err
+	}
+	for _, tmpMessage := range daoMessages {
+		var message Message
+		message.Id = tmpMessage.Id
+		message.FromUserID = tmpMessage.FromUserID
+		message.ToUserID = tmpMessage.ToUserID
+		message.Content = tmpMessage.Content
+		message.CreateTime = tmpMessage.CreateTime.Unix()
+		messages = append(messages, message)
 	}
 	return messages, nil
 }
 
+<<<<<<< HEAD
 //func (c *MessageServiceImpl) MessageChat(loginUserId int64, targetUserId int64) ([]dao.Message, error) {
 //	messages := make([]dao.Message, 0, config.MessageInitNum)
 //	messages, err := dao.MessageChat(loginUserId, targetUserId)
@@ -65,9 +83,14 @@ func (c *MessageServiceImpl) MessageChat(loginUserId int64, targetUserId int64, 
 
 // todo 更新聊天记录redis
 
+=======
+>>>>>>> 44abf95a32657c28dd1d117072817d4cccee288c
 //======================   LatestMessage   =========================
 
 func (c *MessageServiceImpl) LatestMessage(loginUserId int64, targetUserId int64) (LatestMessage, error) {
+	if loginUserId > targetUserId {
+		loginUserId, targetUserId = targetUserId, loginUserId
+	}
 	lastMessage, err := c.getLastMessageFromRedis(loginUserId, targetUserId)
 	if err != nil {
 		return LatestMessage{}, err
@@ -101,6 +124,7 @@ func (c *MessageServiceImpl) getLastMessageFromDB(loginUserId int64, targetUserI
 	return latestMessage, nil
 }
 
+// todo 解决双方最新消息不一致的问题
 func (c *MessageServiceImpl) getLastMessageFromRedis(loginUserId int64, targetUserId int64) (LatestMessage, error) {
 	var latestMessage LatestMessage
 	uId := fmt.Sprintf("%s%d-%d", config.UserAllId_Message_KEY_PREFIX, loginUserId, targetUserId)
