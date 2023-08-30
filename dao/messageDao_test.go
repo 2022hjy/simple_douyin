@@ -28,7 +28,8 @@ func TestMessageChat(t *testing.T) {
 	database.Init()
 	loginUserId := 1
 	targetUserId := 2
-	messages, err := MessageChat(int64(loginUserId), int64(targetUserId))
+	LastTime := time.Now()
+	messages, err := MessageChat(int64(loginUserId), int64(targetUserId), LastTime)
 	if err != nil {
 		log.Println("MessageChat 测试失败")
 	}

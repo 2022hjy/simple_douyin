@@ -1,29 +1,19 @@
 package controller
 
 import (
+	"github.com/gin-gonic/gin"
 	"log"
 	"math"
 	"net/http"
-	"strconv"
-	"time"
-
-	"github.com/gin-gonic/gin"
 	"simple_douyin/config"
 	"simple_douyin/dao"
+	"strconv"
+	"time"
 )
 
 func VideoRespondWithError(c *gin.Context, statusCode int32, errMsg string) {
 	c.JSON(http.StatusOK, Response{StatusCode: statusCode, StatusMsg: errMsg})
 }
-
-var (
-//videoService *service.VideoServiceImpl
-
-)
-
-//func init() {
-//	videoService = service.GetVideoServiceInstance()
-//}
 
 type FeedResponse struct {
 	Response

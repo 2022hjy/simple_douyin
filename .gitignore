@@ -15,7 +15,7 @@
 *.out
 
 #
-config/config.go
+#config/config.go
 
 # Dependency directories (remove the comment below to include it)
 # vendor/
