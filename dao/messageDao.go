@@ -47,24 +47,6 @@ func MessageChat(loginUserId int64, targetUserId int64, latestTime time.Time) ([
 	return messages, nil
 }
 
-// MessageChat 当前登录用户和其他指定用户的聊天记录
-// TODO 是否要考虑上次最新消息时间，还是直接获取全部聊天记录
-//func MessageChat(loginUserId int64, targetUserId int64) ([]Message, error) {
-//	messages := make([]Message, 0, config.MessageInitNum)
-//	result := database.Db.Where("(from_user_id = ? and to_user_id = ?) or (from_user_id = ? and to_user_id = ?)",
-//		loginUserId, targetUserId, targetUserId, loginUserId).
-//		Order("create_time ASC").
-//		Find(&messages)
-//	if result.RowsAffected == 0 {
-//		return messages, nil
-//	}
-//	if result.Error != nil {
-//		log.Println("获取MessageChat失败：", result.Error.Error())
-//		return nil, result.Error
-//	}
-//	return messages, nil
-//}
-
 // LatestMessage  返回 loginUserId 和 targetUserId 最近的一条聊天记录
 func LatestMessage(loginUserId int64, targetUserId int64) (Message, error) {
 	var message Message

@@ -51,7 +51,6 @@ func Publish(c *gin.Context) {
 
 // PublishList 用户的视频发布列表，直接列出用户所有投稿过的视频
 func PublishList(c *gin.Context) {
-	// 获取到的userId，被访问的用户id
 	reqUserId := c.Query("user_id")
 	userId, _ := strconv.ParseInt(reqUserId, 10, 64)
 	log.Println("获取到用户 Id：", userId)

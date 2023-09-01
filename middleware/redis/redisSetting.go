@@ -215,7 +215,7 @@ func SetHash(client *redisv9.Client, key string, data interface{}) error {
 		return errors.New("client is nil")
 	}
 	if SetErr := client.HSet(Ctx, key, data).Err(); SetErr != nil {
-		log.Fatalf("redis set hash error: %v\n", SetErr)
+		log.Println("redis set hash error: %v\n", SetErr)
 		return SetErr
 	}
 	return nil

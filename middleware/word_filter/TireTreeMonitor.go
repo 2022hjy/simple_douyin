@@ -20,6 +20,14 @@ func NewWordFilterMiddleware(txtFilePath string) (gin.HandlerFunc, error) {
 			filteredText := trie.Filter(text)
 			c.Set("filteredText", filteredText)
 		}
+
+		// 聊天记录模块
+		content := c.Query("content")
+		if content != "" {
+			filteredContent := trie.Filter(content)
+			c.Set("filteredContent", filteredContent)
+		}
+
 		c.Next()
 	}, nil
 }

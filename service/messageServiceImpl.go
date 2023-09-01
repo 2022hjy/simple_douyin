@@ -19,10 +19,6 @@ var (
 	messageServiceOnce sync.Once
 )
 
-func init() {
-	messageServiceImpl = GetMessageServiceInstance()
-}
-
 func GetMessageServiceInstance() *MessageServiceImpl {
 	messageServiceOnce.Do(func() {
 		messageServiceImpl = &MessageServiceImpl{}
@@ -38,9 +34,8 @@ func (c *MessageServiceImpl) SendMessage(fromUserId int64, toUserId int64, conte
 		CreateTime: time.Unix(time.Now().Unix(), 0),
 	}
 	LaseMessage, err := dao.SendMessage(message)
-	//在发送消息的时候就存入redis
 
-	// 对fromUserId和toUserId进行排序 保证LastMessage的redis一致性
+	// 在发送消息的时候就存入redis 对fromUserId和toUserId进行排序 保证LastMessage的redis一致性
 	if fromUserId > toUserId {
 		fromUserId, toUserId = toUserId, fromUserId
 	}
@@ -79,14 +74,6 @@ func (c *MessageServiceImpl) LatestMessage(loginUserId int64, targetUserId int64
 		return LatestMessage{}, err
 	}
 
-	if lastMessage.Message != "" {
-		return lastMessage, nil
-	}
-
-	lastMessage, err = c.getLastMessageFromDB(loginUserId, targetUserId)
-	if err != nil {
-		return LatestMessage{}, err
-	}
 	return lastMessage, nil
 }
 
@@ -107,7 +94,6 @@ func (c *MessageServiceImpl) getLastMessageFromDB(loginUserId int64, targetUserI
 	return latestMessage, nil
 }
 
-// todo 解决双方最新消息不一致的问题
 func (c *MessageServiceImpl) getLastMessageFromRedis(loginUserId int64, targetUserId int64) (LatestMessage, error) {
 	var latestMessage LatestMessage
 	uId := fmt.Sprintf("%s%d-%d", config.UserAllId_Message_KEY_PREFIX, loginUserId, targetUserId)

@@ -63,7 +63,7 @@ func InitRouter(apiRouter *gin.RouterGroup) *gin.RouterGroup {
 	// 私信相关路由
 	rMessage := apiRouter.Group("/message")
 	{
-		rMessage.POST("/action/", jwt.Auth(), controller.MessageAction)
+		rMessage.POST("/action/", jwt.Auth(), WordFilter, controller.MessageAction)
 		rMessage.GET("/chat/", jwt.Auth(), controller.MessageChat)
 	}
 
