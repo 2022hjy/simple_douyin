@@ -52,7 +52,7 @@ func RelationAction(c *gin.Context) {
 	// 关注
 	case 1 == actionType:
 		go func() {
-			_, err := fsi.FollowAction(userId, toUserId)
+			_, err := fsi.AddFollowAction(userId, toUserId)
 			if err != nil {
 				log.Println(err)
 			}
@@ -86,7 +86,7 @@ func Followlist(c *gin.Context) {
 	}
 
 	fsi := service.NewFSIInstance()
-	followings, err1 := fsi.GetFollowings(userId)
+	followings, err1 := fsi.GetFollowList(userId)
 	if err1 != nil {
 		fmt.Printf("fail")
 		c.JSON(http.StatusOK, UserListResponse{
@@ -127,7 +127,7 @@ func FollowerList(c *gin.Context) {
 	}
 
 	fsi := service.NewFSIInstance()
-	followers, err1 := fsi.GetFollowers(userId)
+	followers, err1 := fsi.GetFollowerList(userId)
 	if err1 != nil {
 		fmt.Printf("fail")
 		c.JSON(http.StatusOK, UserListResponse{
@@ -168,7 +168,7 @@ func FriendList(c *gin.Context) {
 	}
 
 	fsi := service.NewFSIInstance()
-	followers, err1 := fsi.GetFriends(userId)
+	followers, err1 := fsi.GetFriendList(userId)
 	if err1 != nil {
 		fmt.Printf("fail")
 		c.JSON(http.StatusOK, FriendUserListResponse{

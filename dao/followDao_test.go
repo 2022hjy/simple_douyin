@@ -13,7 +13,7 @@ func TestFollowDao_InsertFollowRelation(t *testing.T) {
 
 func TestFollowDao_FindRelation(t *testing.T) {
 	database.Init()
-	follow, err := followDao.FindEverFollowing(3, 1)
+	follow, err := followDao.CheckFollowRelation(3, 1)
 	if err == nil {
 		log.Default()
 	}
@@ -39,9 +39,9 @@ func TestFollowDao_GetFollowingsInfo(t *testing.T) {
 
 }
 
-func TestFollowDao_GetUserName(t *testing.T) {
+func TestFollowDao_GetNameByUserId(t *testing.T) {
 	database.Init()
-	name, err := followDao.GetUserName(1)
+	name, err := followDao.GetNameByUserId(1)
 	if err != nil {
 		log.Default()
 	}

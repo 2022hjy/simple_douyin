@@ -29,11 +29,8 @@ var (
 	routingKey_remove = "follow_remove"
 )
 
-func CacheTimeGenerator() time.Duration {
-	// 先设置随机数 - 这里比较重要
+func SetSaveTime() time.Duration {
 	rand.Seed(time.Now().Unix())
-	// 再设置缓存时间
-	// 10 + [0~20) 分钟的随机时间
 	return time.Duration((10 + rand.Int63n(20)) * int64(time.Minute))
 }
 
@@ -60,16 +57,14 @@ func NewFSIInstance() *FollowServiceImp {
 	return followServiceImp
 }
 
-//-------------------------------------API IMPLEMENT--------------------------------------------
-
 /*
-	关注业务
+	添加关注
 */
 //SendMessage(routingKey_add, body string)
-// FollowAction 关注操作的业务
-func (followService *FollowServiceImp) FollowAction(userId int64, targetId int64) (bool, error) {
+// AddFollowAction 关注操作的业务
+func (followService *FollowServiceImp) AddFollowAction(userId int64, targetId int64) (bool, error) {
 	followDao := dao.NewFollowDaoInstance()
-	follow, err := followDao.FindEverFollowing(userId, targetId)
+	follow, err := followDao.CheckFollowRelation(userId, targetId)
 	// 寻找SQL 出错。
 	if nil != err {
 		return false, err
@@ -95,7 +90,7 @@ func (followService *FollowServiceImp) FollowAction(userId int64, targetId int64
 func (followService *FollowServiceImp) CancelFollowAction(userId int64, targetId int64) (bool, error) {
 
 	followDao := dao.NewFollowDaoInstance()
-	follow, err := followDao.FindEverFollowing(userId, targetId)
+	follow, err := followDao.CheckFollowRelation(userId, targetId)
 	// 寻找 SQL 出错。
 	if nil != err {
 		return false, err
@@ -120,8 +115,8 @@ func (followService *FollowServiceImp) CancelFollowAction(userId int64, targetId
 	获取关注列表业务
 */
 
-// GetFollowings 获取正在关注的用户详情列表业务
-func (followService *FollowServiceImp) GetFollowings(userId int64) ([]dao.Userfollow, error) {
+// GetFollowList 获取正在关注的用户详情列表业务
+func (followService *FollowServiceImp) GetFollowList(userId int64) ([]dao.Userfollow, error) {
 	// 调用集成redis的关注用户获取接口获取关注用户id和关注用户数量
 	userFollowingsId, userFollowingsCnt, err := GetFollowingsByRedis(userId)
 	if nil != err {
@@ -200,8 +195,8 @@ func GetFollowersByRedis(userId int64) ([]int64, int64, error) {
 
 }
 
-// GetFollowers 获取粉丝详情列表业务
-func (followService *FollowServiceImp) GetFollowers(userId int64) ([]dao.Userfollow, error) {
+// GetFollowerList 获取粉丝详情列表业务
+func (followService *FollowServiceImp) GetFollowerList(userId int64) ([]dao.Userfollow, error) {
 	// 调用集成redis的粉丝获取接口获取粉丝id和粉丝数量
 	userFollowersId, userFollowersCnt, err := GetFollowersByRedis(userId)
 
@@ -256,8 +251,8 @@ func GetFriendsByRedis(userId int64) ([]int64, int64, error) {
 
 }
 
-// GetFriends 获取用户好友列表（附带与其最新聊天记录）
-func (followService *FollowServiceImp) GetFriends(userId int64) ([]dao.FriendUser, error) {
+// GetFriendList 获取用户好友列表（附带与其最新聊天记录）
+func (followService *FollowServiceImp) GetFriendList(userId int64) ([]dao.FriendUser, error) {
 	// 调用集成redis的好友获取接口获取好友id和好友数量
 	userFriendId, userFriendCnt, err := GetFriendsByRedis(userId)
 
@@ -292,7 +287,7 @@ func (followService *FollowServiceImp) BuildFriendUser(userId int64, friendUsers
 
 		// 好友name赋值
 		var err1 error
-		friendUsers[i].Username, err1 = followDao.GetUserName(ids[i])
+		friendUsers[i].Username, err1 = followDao.GetNameByUserId(ids[i])
 		if nil != err1 {
 			log.Println(err1)
 			return err1
@@ -353,7 +348,7 @@ func (followService *FollowServiceImp) BuildUser(userId int64, users []dao.Userf
 
 		// 用户name赋值
 		var err1 error
-		users[i].Username, err1 = folowDao.GetUserName(ids[i])
+		users[i].Username, err1 = folowDao.GetNameByUserId(ids[i])
 		if nil != err1 {
 			log.Println(err1)
 			return err1
@@ -478,7 +473,7 @@ func ImportToRDBFollowing(userId int64, ids []int64) {
 		redis.Clients.UserId_FollowingsR.SAdd(redis.Ctx, config.User_Follow_KEY_PREFIX+strconv.FormatInt(userId, 10), int(id))
 	}
 
-	redis.Clients.UserId_FollowingsR.Expire(redis.Ctx, config.User_Follow_KEY_PREFIX+strconv.FormatInt(userId, 10), CacheTimeGenerator())
+	redis.Clients.UserId_FollowingsR.Expire(redis.Ctx, config.User_Follow_KEY_PREFIX+strconv.FormatInt(userId, 10), SetSaveTime())
 }
 
 func ImportToRDBFriend(userId int64, ids []int64) {
@@ -487,7 +482,7 @@ func ImportToRDBFriend(userId int64, ids []int64) {
 		redis.Clients.UserId_FollowersR.SAdd(redis.Ctx, config.User_Follow_KEY_PREFIX+strconv.FormatInt(userId, 10), int(id))
 	}
 
-	redis.Clients.UserId_FollowersR.Expire(redis.Ctx, config.User_Follow_KEY_PREFIX+strconv.FormatInt(userId, 10), CacheTimeGenerator())
+	redis.Clients.UserId_FollowersR.Expire(redis.Ctx, config.User_Follow_KEY_PREFIX+strconv.FormatInt(userId, 10), SetSaveTime())
 }
 
 // ImportToRDBFollower 将登陆用户的关注id列表导入到follower数据库中
@@ -497,7 +492,7 @@ func ImportToRDBFollower(userId int64, ids []int64) {
 		redis.Clients.UserId_FollowersR.SAdd(redis.Ctx, config.User_Follow_KEY_PREFIX+strconv.FormatInt(userId, 10), int(id))
 	}
 
-	redis.Clients.UserId_FollowersR.Expire(redis.Ctx, config.User_Follow_KEY_PREFIX+strconv.FormatInt(userId, 10), CacheTimeGenerator())
+	redis.Clients.UserId_FollowersR.Expire(redis.Ctx, config.User_Follow_KEY_PREFIX+strconv.FormatInt(userId, 10), SetSaveTime())
 }
 
 /*
@@ -521,7 +516,7 @@ func (followService *FollowServiceImp) GetFollowingCnt(userId int64) (int64, err
 			log.Println(err2.Error())
 		}
 		//设置 Redis 中的键的过期时间
-		redis.Clients.UserId_FollowingsR.Expire(redis.Ctx, config.User_Follow_KEY_PREFIX+strconv.FormatInt(userId, 10), CacheTimeGenerator())
+		redis.Clients.UserId_FollowingsR.Expire(redis.Ctx, config.User_Follow_KEY_PREFIX+strconv.FormatInt(userId, 10), SetSaveTime())
 		return cnt, nil
 
 	} else {
@@ -561,7 +556,7 @@ func (followService *FollowServiceImp) GetFollowerCnt(userId int64) (int64, erro
 			log.Println(err2.Error())
 		}
 
-		redis.Clients.UserId_FollowersR.Expire(redis.Ctx, config.User_Follow_KEY_PREFIX+strconv.FormatInt(userId, 10), CacheTimeGenerator())
+		redis.Clients.UserId_FollowersR.Expire(redis.Ctx, config.User_Follow_KEY_PREFIX+strconv.FormatInt(userId, 10), SetSaveTime())
 		return cnt, nil
 
 	} else {

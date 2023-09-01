@@ -12,7 +12,7 @@ import (
 func TestFollowServiceImp_GetFollowings(t *testing.T) {
 	database.Init()
 	redis.InitRedis()
-	followings, err := followServiceImp.GetFollowings(1)
+	followings, err := followServiceImp.GetFollowList(1)
 
 	if err != nil {
 		log.Default()
@@ -23,7 +23,7 @@ func TestFollowServiceImp_GetFollowings(t *testing.T) {
 func TestFollowServiceImp_GetFollowers(t *testing.T) {
 	database.Init()
 	redis.InitRedis()
-	followers, err := followServiceImp.GetFollowers(2)
+	followers, err := followServiceImp.GetFollowerList(2)
 
 	if err != nil {
 		log.Default()
@@ -62,11 +62,11 @@ func TestFollowServiceImp_CheckIsFollowing(t *testing.T) {
 	fmt.Println(result)
 }
 
-func TestFollowServiceImp_FollowAction(t *testing.T) {
+func TestFollowServiceImp_AddFollowAction(t *testing.T) {
 	redis.InitRedis()
 	database.Init()
 	mq.InitMq()
-	result, err := followServiceImp.FollowAction(1, 4)
+	result, err := followServiceImp.AddFollowAction(1, 4)
 	if err != nil {
 		log.Default()
 	}

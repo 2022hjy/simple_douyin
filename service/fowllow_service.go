@@ -6,23 +6,16 @@ import (
 
 type FollowService interface {
 
-	/*
-		模块业务所需的服务接口
-	*/
-	// FollowAction 当前用户关注目标用户
-	FollowAction(userId int64, targetId int64) (bool, error)
+	// AddFollowAction 当前用户关注目标用户
+	AddFollowAction(userId int64, targetId int64) (bool, error)
 	// CancelFollowAction 当前用户取消对目标用户的关注
 	CancelFollowAction(userId int64, targetId int64) (bool, error)
-	// GetFollowings 获取当前用户的关注列表
-	GetFollowings(userId int64) ([]dao.Userfollow, error)
-	// GetFollowers 获取当前用户的粉丝列表
-	GetFollowers(userId int64) ([]dao.Userfollow, error)
-	// GetFriends 获取好友
-	GetFriends(userId int64) ([]dao.FriendUser, error)
-
-	/*
-		模块对外提供的服务接口
-	*/
+	// GetFollowList 获取当前用户的关注列表
+	GetFollowList(userId int64) ([]dao.Userfollow, error)
+	// GetFollowerList 获取当前用户的粉丝列表
+	GetFollowerList(userId int64) ([]dao.Userfollow, error)
+	// GetFriendList 获取好友
+	GetFriendList(userId int64) ([]dao.FriendUser, error)
 	// GetFollowingCnt 根据用户id查询关注数
 	GetFollowingCnt(userId int64) (int64, error)
 	// GetFollowerCnt 根据用户id查询粉丝数
