@@ -19,6 +19,25 @@ services:
     volumes:
       - ./redis.conf:/etc/redis/redis.conf
     command: "redis-server /etc/redis/redis.conf"
+  rabbitmq:
+
+    restart: always
+    image: rabbitmq:management
+    container_name: rabbitmq
+    hostname: rabbit
+    ports:
+
+      - 5672:5672
+      - 15672:15672
+    environment:
+
+      TZ: Asia/Shanghai
+      RABBITMQ_DEFAULT_USER: rabbit
+      RABBITMQ_DEFAULT_PASS: 123456
+    volumes:
+
+      - ./data:/var/lib/rabbitmq
+      - ./rabbitmq.conf:/etc/rabbitmq
   simple_douyin:
     build: 
       context: .
