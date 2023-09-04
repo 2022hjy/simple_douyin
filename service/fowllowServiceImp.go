@@ -309,10 +309,17 @@ func (followService *FollowServiceImp) BuildFriendUser(userId int64, friendUsers
 			return err3
 		}
 
+		//friendUsers[i].Avatar = config.CUSTOM_DOMAIN + config.OSS_USER_AVATAR_DIR
+		//todo
+		var err4 error
+		friendUsers[i].Avatar, err4 = followDao.GetAvatarByUserId(ids[i])
+		if nil != err4 {
+			log.Println(err4.Error())
+			return err4
+		}
+
 		// 好友其他属性赋值
 		friendUsers[i].IsFollow = true
-
-		//friendUsers[i].Avatar = config.CUSTOM_DOMAIN + config.OSS_USER_AVATAR_DIR
 
 		// 调用message模块获取聊天记录
 		messageInfo, err := msi.LatestMessage(userId, ids[i])
@@ -369,6 +376,14 @@ func (followService *FollowServiceImp) BuildUser(userId int64, users []dao.Userf
 		if nil != err3 {
 			log.Println(err3.Error())
 			return err3
+		}
+
+		//todo
+		var err4 error
+		users[i].Avatar, err4 = folowDao.GetAvatarByUserId(ids[i])
+		if nil != err4 {
+			log.Println(err4.Error())
+			return err4
 		}
 
 		// 根据传入的buildtype决定是哪种业务的user构建

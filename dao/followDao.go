@@ -65,6 +65,20 @@ func (*FollowDao) GetNameByUserId(userId int64) (string, error) {
 	return name, nil
 }
 
+// GetAvatarByUserId 在user表中根据id查询用户姓名
+func (*FollowDao) GetAvatarByUserId(userId int64) (string, error) {
+	var avatar string
+
+	err := database.Db.Table("user").Where("user_id = ?", userId).Pluck("avatar", &avatar).Error
+
+	if nil != err {
+		log.Println(err.Error())
+		return "", err
+	}
+
+	return avatar, nil
+}
+
 // CheckFollowRelation 给定当前用户和目标用户id，查看曾经是否有关注关系。
 func (*FollowDao) CheckFollowRelation(userId int64, targetId int64) (*Follow, error) {
 	// 用于存储查出来的关注关系。

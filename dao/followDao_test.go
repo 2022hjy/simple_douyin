@@ -48,6 +48,15 @@ func TestFollowDao_GetNameByUserId(t *testing.T) {
 	fmt.Println(name)
 }
 
+func TestFollowDao_GetAvatarByUserId(t *testing.T) {
+	database.Init()
+	Avatar, err := followDao.GetAvatarByUserId(1)
+	if err != nil {
+		log.Default()
+	}
+	fmt.Println(Avatar)
+}
+
 func TestFollowDao_GetFriendsInfo(t *testing.T) {
 	database.Init()
 	friendId, friendCnt, _ := followDao.GetFriendsInfo(1)
